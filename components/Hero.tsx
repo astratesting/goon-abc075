@@ -27,9 +27,10 @@ export function Hero() {
           </h1>
 
           <p className="mt-6 text-lg text-gray-600 leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style={{ animationDelay: "0.15s" }}>
-            Goon uses AI to auto-repair your 3D files and routes them to a local
-            printer near you — no minimum orders, no week-long waits. Parts ship
-            same day, starting at $15.
+            Goon&apos;s AI auto-repairs broken meshes, fixes geometry errors, and
+            optimizes wall thicknesses — then routes your file to a local printer
+            near you. No minimum orders, no week-long waits. Parts ship same day,
+            starting at $15.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>

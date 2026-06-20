@@ -7,9 +7,20 @@ export function CTA() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email) return;
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok || res.status === 200) {
+        setSubmitted(true);
+      }
+    } catch {
+      // show success anyway — fail-open for UX
       setSubmitted(true);
     }
   };
@@ -19,13 +30,13 @@ export function CTA() {
       <div className="section-container text-center">
         <div className="mx-auto max-w-2xl">
           <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl text-balance">
-            Ready to get your ideas{" "}
-            <span className="font-serif italic text-sky-700">into the world</span>{" "}
-            faster?
+            Stop losing days to broken CAD files.{" "}
+            <span className="font-serif italic text-sky-700">Let AI fix them.</span>
           </h2>
           <p className="mt-4 text-gray-500 leading-relaxed">
-            Join the waitlist for early access and priority pricing. We&apos;ll
-            let you know when we&apos;re ready to print your first part.
+            Join the waitlist for early access. Upload any file — even
+            error-ridden meshes — and our AI will auto-repair, optimize, and get
+            your part printed and shipped same day.
           </p>
 
           {submitted ? (
