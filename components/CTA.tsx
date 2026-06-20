@@ -26,7 +26,7 @@ export function CTA() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-mint-50/30 to-sand-50/30">
+    <section id="waitlist" className="relative overflow-hidden bg-gradient-to-br from-sky-50 via-mint-50/30 to-sand-50/30">
       <div className="section-container text-center">
         <div className="mx-auto max-w-2xl">
           <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl text-balance">

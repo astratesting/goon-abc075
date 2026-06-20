@@ -41,6 +41,12 @@ export function Navbar() {
           >
             FAQ
           </a>
+          <a
+            href="#waitlist"
+            className="text-sm text-gray-600 hover:text-sky-700 transition-colors"
+          >
+            Waitlist
+          </a>
           {session ? (
             <>
               <Link
@@ -123,6 +129,13 @@ export function Navbar() {
             onClick={() => setMenuOpen(false)}
           >
             FAQ
+          </a>
+          <a
+            href="#waitlist"
+            className="block text-sm text-gray-600"
+            onClick={() => setMenuOpen(false)}
+          >
+            Waitlist
           </a>
           {session ? (
             <>

@@ -49,6 +49,14 @@ export function Footer() {
                   FAQ
                 </a>
               </li>
+              <li>
+                <a
+                  href="#waitlist"
+                  className="text-sm text-gray-500 hover:text-sky-700"
+                >
+                  Waitlist
+                </a>
+              </li>
             </ul>
           </div>
 

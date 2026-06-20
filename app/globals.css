@@ -2,14 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --color-sky-brand: #87CEEB;
-    --color-mint-brand: #98FB98;
-    --color-sand-brand: #F5DEB3;
-    --color-softwhite: #FAFAFA;
+    --color-sky-brand: #6DB5D2;
+    --color-mint-brand: #A5D8C1;
+    --color-sand-brand: #E8CDA0;
+    --color-softwhite: #F5F8FA;
   }
 
   html {
@@ -18,7 +18,11 @@
 
   body {
     @apply bg-softwhite text-gray-900 antialiased;
-    font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-family: 'Nunito Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif;
   }
 }
 

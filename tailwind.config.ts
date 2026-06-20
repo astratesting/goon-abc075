@@ -9,28 +9,28 @@ const config: Config = {
     extend: {
       colors: {
         sky: {
-          brand: "#87CEEB",
-          light: "#b0e0f0",
+          brand: "#6DB5D2",
+          light: "#a8d4e8",
         },
         mint: {
-          brand: "#98FB98",
-          light: "#c8fdc8",
+          brand: "#A5D8C1",
+          light: "#c8e8d8",
         },
         sand: {
-          brand: "#F5DEB3",
-          light: "#faf0d8",
+          brand: "#E8CDA0",
+          light: "#f2e2c8",
         },
-        softwhite: "#FAFAFA",
+        softwhite: "#F5F8FA",
       },
       fontFamily: {
         sans: [
-          "Geist",
+          "Nunito Sans",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
           "sans-serif",
         ],
-        serif: ["Lora", "Georgia", "serif"],
+        serif: ["Outfit", "ui-sans-serif", "sans-serif"],
       },
       animation: {
         "orbit-slow": "orbit 20s linear infinite",
