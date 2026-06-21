@@ -55,6 +55,18 @@ export function Navbar() {
               >
                 Dashboard
               </Link>
+              <Link
+                href="/upload"
+                className="text-sm text-gray-600 hover:text-sky-700 transition-colors"
+              >
+                Upload
+              </Link>
+              <Link
+                href="/orders"
+                className="text-sm text-gray-600 hover:text-sky-700 transition-colors"
+              >
+                Orders
+              </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="text-sm text-gray-500 hover:text-red-600 transition-colors"
@@ -65,12 +77,12 @@ export function Navbar() {
           ) : (
             <>
               <Link
-                href="/login"
+                href="/auth/signin"
                 className="text-sm text-gray-600 hover:text-sky-700 transition-colors"
               >
                 Sign in
               </Link>
-              <Link href="/login" className="btn-primary !px-6 !py-2 !text-xs">
+              <Link href="/auth/signup" className="btn-primary !px-6 !py-2 !text-xs">
                 Get started
               </Link>
             </>
@@ -146,6 +158,20 @@ export function Navbar() {
               >
                 Dashboard
               </Link>
+              <Link
+                href="/upload"
+                className="block text-sm text-gray-600"
+                onClick={() => setMenuOpen(false)}
+              >
+                Upload
+              </Link>
+              <Link
+                href="/orders"
+                className="block text-sm text-gray-600"
+                onClick={() => setMenuOpen(false)}
+              >
+                Orders
+              </Link>
               <button
                 onClick={() => {
                   setMenuOpen(false);
@@ -159,13 +185,13 @@ export function Navbar() {
           ) : (
             <>
               <Link
-                href="/login"
+                href="/auth/signin"
                 className="block text-sm text-gray-600"
                 onClick={() => setMenuOpen(false)}
               >
                 Sign in
               </Link>
-              <Link href="/login" className="btn-primary !text-xs mt-2">
+              <Link href="/auth/signup" className="btn-primary !text-xs mt-2">
                 Get started
               </Link>
             </>
