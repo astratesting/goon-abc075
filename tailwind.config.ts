@@ -24,13 +24,14 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
-          "Nunito Sans",
+          "var(--font-geist-sans)",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
           "sans-serif",
         ],
-        serif: ["Outfit", "ui-sans-serif", "sans-serif"],
+        serif: ["Lora", "Georgia", "ui-serif", "serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
       },
       animation: {
         "orbit-slow": "orbit 20s linear infinite",
