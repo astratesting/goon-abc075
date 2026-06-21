@@ -1,240 +1,699 @@
-```markdown
-# Goon — Build Plan
+# Goon — Full App Build Plan
 
 ## 1. PRODUCT
 
-Goon is an on-demand 3D printing platform with an authenticated member workspace. The public landing page stays untouched as the top-of-funnel surface (hero, features, pricing, FAQ, waitlist email capture). The product extension gives signed-up members a private workspace at `/dashboard` showing their account, an upload tool for STL/OBJ/3MF files (the core action for the hobbyist-inventor ICP who already has CAD files), a signup-analytics counter (lightweight admin-style metric visible to the logged-in user to reinforce "early builder" status without inventing fake social proof), and a profile/settings page for managing display name and password. The pain solved, per the ICP brief, is "I have a CAD file, I want a quote/print job fast, I don't want to be locked into a B2B minimum-order quote engine" — so the upload page treats file drop as the primary, single-purpose action and does not bury it under a multi-step wizard.
+Goon extends its on-demand 3D printing landing page into a working web app where hobbyist inventors sign up, upload a 3D model, pick a material, and get a price quote in one sitting — without account minimums, RFQ forms, or sales calls. The product closes the loop from marketing site to first quote: the value is "go from CAD file to a real, priced print order in under three minutes." The pain it solves is the one the research names explicitly: the consumer/hobbyist segment is underserved post-Shapeways, and existing platforms (Xometry, Hubs, Ponoko) gate hobbyists behind B2B UX — minimum orders, sales contact, slow manual quotes. Goon's product removes that friction with a single dashboard flow: upload → select → quote → submit.
 
 ## 2. WHO IT'S FOR
 
-Primary ICP: independent inventors and hobbyist creators, ages 25-55, technically inclined, who already produce CAD files (Fusion 360, Blender, TinkerCAD, OnShape). They are time-poor on the business side (don't want to talk to a sales rep, don't want a minimum-order fee) but meticulous about their files. Implications for the product:
+The ICP from research is an independent inventor or hobbyist creator, 25–55, technically inclined, with imperfect CAD files who needs fast, affordable prototyping with no minimum order. This shapes every product decision:
 
-- Tone: technical but plain. No marketing fluff inside the app. Status text uses engineer vocabulary (mesh, volume, manifold).
-- Information density: higher than the landing page. The dashboard is a working tool, not a sales page.
-- Single primary action per screen. No nested nav beyond a left rail with 3 items (Dashboard, Upload, Settings) plus sign out.
-- Empty states are friendly but factual ("Upload your first .STL to see print estimates") — not "Get started in seconds!" cheerleading.
-- No fabricated logos, testimonials, or user counts. A "members so far" counter shows the real signup count from the database.
+- **No jargon-heavy B2B language.** Copy says "Upload your file," not "Submit geometry for manufacturability review."
+- **No dashboards-within-dashboards.** Side nav is flat. The post-login landing is the next action: upload.
+- **No fake social proof.** No "trusted by 10,000 makers" or invented logos. Honest empty states instead.
+- **Mobile-tolerant, not mobile-first** — hobbyists use laptops for CAD work, but upload must work from phone.
+- **Tone: calm, direct, slightly playful** — matches the Calm System visual brand. The research says this segment is time-poor; copy is short.
 
 ## 3. LOOK & FEEL
 
-The app inherits the Calm System already established on the landing page.
+The existing Calm System is preserved exactly. New screens extend it without reinventing the visual language.
 
-**Visual system (carried into the app):**
-- Palette: sky blue `#6DB5D2` (primary actions, links), mint `#A5D8C1` (success states, "ready" chips), sand `#E8CDA0` (warning/pending states), soft white `#F5F8FA` (app canvas), graphite `#1E2A32` (text), muted `#6B7B85` (secondary text). Backgrounds use `bg-[#F5F8FA]` for app shell, `bg-white` for cards, `border-[#E2EAEF]` for hairlines.
-- Typography: Geist Sans for UI/body, Geist Mono for filenames, hashes, file size, status codes. Lora italic is reserved for marketing-flavored landing copy only — inside the app everything is Geist.
-- Spacing: 8px base. Cards `rounded-2xl`, `p-6`, `shadow-[0_1px_2px_rgba(30,42,50,0.04)]`. Dense areas (file lists) use `p-3` and 12px row gaps.
-- Iconography: lucide-react, 1.5px stroke. No emoji icons inside the app. Orbit motif is reserved for the landing page only.
-- Motion: 150ms ease-out for hover, 200ms for state transitions. File drop zone has a single subtle pulse on hover (sky-200 ring, no scale jitter). No parallax, no scroll-triggered animation inside the app.
-- Imagery: none inside the app. The app is tool-like; hero imagery stays on the landing page.
+**Palette (locked, from existing globals.css):**
+- Primary sky blue `#6DB5D2` — CTAs, links, focus rings
+- Mint `#A5D8C1` — success states, progress, "ready" badges
+- Sand `#E8CDA0` — highlights, quote panel background, warm accent
+- Soft white `#F5F8FA` — page background
+- Ink `#1A2330` — body text
+- Mute `#6B7785` — secondary text
 
-**Layout shell (used on every authenticated route):**
-- Fixed left sidebar `w-60`, `bg-white`, `border-r border-[#E2EAEF]`. Contains: logo wordmark "goon" in Geist 600, three nav items (Dashboard / Upload / Settings) with lucide icons, and a user card at the bottom showing avatar initial in a sky-blue circle + email (truncated) + sign-out button.
-- Top bar `h-14`, `bg-white/80 backdrop-blur`, shows page title (Geist 600, 18px), and on the right a small "members" pill (sky-tinted, shows total signup count from `signup_events`).
-- Main content area `max-w-5xl mx-auto p-8`.
+**Typography:** Geist Sans for UI/numbers, Lora for the one accent line per screen (used in quote panel and welcome hero). No new fonts.
 
-**Screen-by-screen layout:**
+**Spacing:** 8px base unit. Sections padded `py-16` desktop / `py-10` mobile. Card radius `rounded-2xl` (16px), buttons `rounded-xl` (12px). Generous whitespace — the brand is "calm."
 
-`/dashboard` (default after login)
-- Top: greeting row — "Welcome back, {firstName or 'builder'}." (Geist 600, 24px) + muted "{email}" underneath.
-- Stat row: three cards in a grid.
-  - Card 1 "Your uploads" — count of files this user has uploaded, large number, sub-label "files in your library".
-  - Card 2 "Total members" — count of all signup events, sub-label "builders signed up". This is the real, honest counter, not a vanity number.
-  - Card 3 "Account" — "Free tier" chip in sand, sub-label "AI file repair included".
-- Quick action card: full-width, sky-50 background, contains a single primary button "Upload a model →" that links to `/upload`. Right side: muted text "STL, OBJ, or 3MF up to 50 MB".
-- Recent uploads list: last 5 uploads for this user, or an empty state ("No uploads yet — drop a .STL on the Upload page to get started.") Each row: filename (mono), size (mono, muted), upload date, status chip (ready=mint, failed=sand).
-- Footer note: "Need help? Email hello@goon.abc..." (placeholder address, no fake support chat).
+**Iconography:** Lucide-react (already likely present; add if not). Stroke 1.5px, 20px default. Icons: Upload, Box, Layers, Clock, FileCheck, LogOut, Settings, ChevronRight, Check.
 
-`/upload`
-- Centered single-column card, `max-w-2xl`.
-- Header: "Upload a model" (Geist 600, 24px), sub: "We'll check the mesh and queue it for AI repair." (muted).
-- Drop zone: large `h-64` rounded-2xl area with dashed `border-2 border-dashed border-[#6DB5D2]/50`, `bg-[#F5F8FA]`. Centered icon (Upload from lucide, sky blue), primary text "Drop your file here", secondary text "or click to browse — .STL, .OBJ, .3MF, max 50 MB". On drag-over: ring becomes solid sky-500, background tints sky-50.
-- Below the drop zone (after a file is selected): file summary row — filename (mono), size (mono), a small "remove" text button on the right. Then a single primary button "Upload" (sky blue filled). After click: button shows spinner, then transitions to a status block showing:
-  - "Uploaded ✓" with mint chip
-  - Detected format
-  - Triangle count (computed client-side for STL; for OBJ/3MF shown as "—")
-  - Mesh health: "Manifold" (mint) or "Needs repair" (sand). Manifold check is a lightweight client-side test (count edges with exactly 2 adjacent faces for binary STL; for OBJ/3MF show "Manifold: pending server check").
-- After success: a "Upload another" text link appears, plus the file appears on the dashboard list.
+**Imagery:** No stock photos, no product shots of prints (we don't have any yet — honest empty state). Use abstract orbit SVG mark (existing) and gradient washes of sky→mint on hero areas. The upload screen uses a dashed-border drop zone, not a product image.
 
-`/settings`
-- Two stacked cards inside `max-w-2xl`.
-- Card 1 "Profile": form with fields `Display name` (text, optional, defaults to email local part), `Email` (read-only, muted). Save button is sky-blue, disabled until changed. Save shows "Saved" mint toast.
-- Card 2 "Password": fields `Current password`, `New password` (min 8 chars, live hint), `Confirm new password`. Inline validation: "Passwords match" mint when valid. Submit calls Supabase `updateUser({ password })`. Success toast "Password updated".
-- Card 3 "Sign out": secondary danger button (graphite text on sand-tinted bg) "Sign out of Goon". Confirms via inline expansion (no modal).
+**Motion:** Subtle only. Drop zone border pulses (1.5s) on drag-over. Spinner uses the orbit mark rotating. Page transitions: no animation library — `transition-opacity duration-200` on route content. Respect `prefers-reduced-motion`.
 
-`/login` and `/signup` (auth pages, unauthenticated only)
-- Same `min-h-screen bg-[#F5F8FA]` canvas as the landing page.
-- Centered card `max-w-md`, white, `rounded-2xl`, `p-8`, with the wordmark on top.
-- Sign up form: `Email`, `Password` (with strength hint), `Confirm password`. Primary button "Create account" (sky-blue, full width). Below: "Already have an account? Log in" link.
-- Log in form: `Email`, `Password`. Primary button "Log in". Below: "New here? Create an account" link.
-- On submit: button shows spinner; on error, an inline `bg-[#E8CDA0]/30` error block with one sentence ("That email and password didn't match.").
-- After successful signup: a row appears below the form: "Check your inbox to confirm your email" with a sand chip "Email not confirmed" that flips to mint once the user clicks the confirmation link and returns. The user is NOT redirected to dashboard until email is confirmed (Supabase default behavior preserved).
-- The auth pages also show a tiny text link at the bottom: "← Back to goon.xyz" that returns to `/` (landing page).
+**Components (reusable, built once):**
+- `<Button variant="primary|secondary|ghost">` — primary uses sky blue, secondary is white with sky border, ghost is text-only with hover bg.
+- `<Card>` — `bg-white rounded-2xl border border-slate-200/60 p-6 shadow-[0_1px_2px_rgba(26,35,48,0.04)]`
+- `<Field>` — label + input + helper text, Geist Sans.
+- `<Badge>` — mint bg for success, sand bg for "draft," sky bg for "in review."
+- `<EmptyState icon title body cta>` — used wherever data is empty.
+- `<Stepper steps={[]} current={n} />` — for onboarding.
+- `<DropZone onFile accept />` — dashed border, drag-over state, file preview row.
+
+---
+
+### Screens, top to bottom
+
+**`/login` and `/signup` (auth pages)**
+Split layout, but on mobile stacks. Left 60% on desktop: centered card on soft-white page. Card max-width 420px, white, rounded-2xl, p-8.
+- Logo + wordmark top
+- H1 in Geist 28px: "Welcome back" (login) / "Create your Goon account" (signup)
+- Lora accent line below: "Print your first part today."
+- Fields: Email, Password (signup adds Full name, optional)
+- Primary button full width: "Log in" / "Create account"
+- Below button, small link: "Don't have an account? Sign up" / "Already have an account? Log in"
+- Tiny footnote: "By continuing you agree to our Terms and Privacy." (No link to fake Terms — text only, neutral)
+- Right 40% on desktop: subtle sky→mint gradient with large faded orbit SVG. Hidden on mobile.
+
+**`/onboarding` (post-signup, first visit only)**
+Full-height page, max-width 720px, centered.
+- Top: `<Stepper>` showing 3 steps: "Upload file" / "Choose material" / "Get your quote"
+- Step 1 active: title "Let's print something." Lora subline "Three minutes from file to quote."
+- Single drop zone (full width, 240px tall) with upload icon and "Drop your .STL or .OBJ here, or click to browse"
+- Below: small text "Max 50MB. Files stay private to your account."
+- "Continue" button disabled until a file is attached. On click → Step 2.
+- Step 2: radio cards for 3 materials (FDM PLA, SLA Resin, SLS Nylon) with sand highlight on selected, small description and "from $X" placeholder.
+- "Continue" → Step 3.
+- Step 3: quote panel — sand background, Lora headline "Your instant quote," then a line "Quote: $XX.XX" (mocked from file size heuristic), "Lead time: ~3-5 days" (honest placeholder for now). Two buttons: "Place order" (primary, submits and routes to `/dashboard/orders/[id]`) and "Save for later" (secondary, goes to `/dashboard`).
+- Top-right of page: "Skip onboarding" link → `/dashboard`.
+
+**`/dashboard` (home for logged-in users)**
+Top bar: small Goon mark + wordmark (left), user email + avatar circle (initial) + dropdown (Account, Sign out) on right. Below: subtle 1px border.
+Body max-width 1120px, p-8.
+- H1: "Welcome back, {firstName}."
+- Lora subline: "Ready to print?"
+- Two columns on desktop (stacks mobile):
+  - **Left col (8/12):** "Your orders" card. If empty: `<EmptyState>` with Box icon, "No orders yet," "Upload a file to get your first quote," CTA button "Start an order" → `/dashboard/orders/new`.
+  - If orders exist: table-ish list (cards on mobile) with columns: Order # (e.g. `GO-000123`), File name, Material badge, Status badge, Quote amount, Date. Click row → `/dashboard/orders/[id]`. "New order" button top-right of card.
+  - Below orders card: "Quick actions" row — two small cards: "Upload a file" (icon Upload) and "Browse materials" (icon Layers). Both route somewhere real (`/dashboard/orders/new` and `/dashboard/materials`).
+- **Right col (4/12):** "Account" card — email, member since date, "Edit profile" link to `/dashboard/account`. Below: "Admin: Signup analytics" card — visible only to the first signed-up user (treated as admin for this build; logic in RLS/role column). Shows total signup count (big number) and a list of 10 most recent signups (email + created_at). No real PII redacted in the DB.
+
+**`/dashboard/orders/new` (the core flow — upload → material → quote → submit)**
+Single page, 3 visible sections stacked, but state-driven (no multi-page reload). Stepper at top identical to onboarding but persistent.
+
+- **Section 1: Upload.** Drop zone 200px tall. When file attached, replace with a row: file icon, file name, size, "Remove" ghost link. If re-uploading, replace the row.
+- **Section 2: Material.** 3 radio cards in a row (1 col on mobile). Each card: material name, short description (1 line), technology tag (FDM/SLA/SLS), "from $X" base price.
+- **Section 3: Quote (sticky on desktop, inline on mobile).** Sand-tinted card. Shows: selected material, computed quote (mock formula: `basePrice + (fileSizeMB * perMBrate)` with sane per-material rates), lead time range. Quote is mock-calculated client-side, clearly labeled in a tiny line: "Instant estimate. Final price confirmed by email."
+- Sticky bottom bar on mobile with "Place order" primary button. On desktop, button inside the quote card.
+- On submit: create order row in Supabase, route to `/dashboard/orders/[id]` showing confirmation card with order #, summary, "We'll email when it's ready." (Email is mocked; honest placeholder text "Email notifications: coming soon" if Resend not configured.)
+
+**`/dashboard/orders/[id]`**
+- Back link "← All orders"
+- H1: `Order GO-000123`
+- Status badge (top right): "Submitted" (sky) → "In review" (sand) → "Printing" (mint) → "Shipped" (mint, with check). For now, statuses are set by the user clicking "Mark as..." buttons in a small "Update status" card — an honest dev-mode affordance. Real status will come from the fulfillment system later.
+- Card: file name, material, quote, ordered at.
+- "Cancel order" ghost button (only if status = Submitted).
+
+**`/dashboard/materials`**
+Static reference page. 3 expandable cards (FDM / SLA / SLS) with one paragraph each, finishes, tolerances, ideal use. All from research. No fake numbers beyond the per-material base price already shown elsewhere.
+
+**`/dashboard/account`**
+- Read-only fields: email (editable → Supabase `updateUser`), display name, member since.
+- "Change password" inline form (current + new + confirm) calling Supabase `updateUser`.
+- "Sign out" button bottom.
+
+**`/dashboard/admin/signups` (admin only, role-gated)**
+- If non-admin hits it: 404.
+- Big number: total users.
+- Table: email, created_at, last_sign_in_at. Pagination simple (limit 50, "Load more").
 
 ## 4. USER FLOWS
 
-**Flow A — New user from landing page**
-1. Visitor on `/` scrolls to the existing waitlist form (already present), enters email, submits. Row is inserted into `waitlist_emails` with `created_at`, `source='landing'`.
-2. Visitor clicks "Get started" / "Sign up" in the landing nav, routed to `/signup`.
-3. Enters email + password, submits. Supabase `signUp` is called. A row is inserted into `signup_events` with `user_id`, `email`, `created_at`, `source='signup_form'`.
-4. Supabase sends confirmation email. Page shows the "check your inbox" state.
-5. User clicks confirmation link → returns to `/login?confirmed=1`. Log in form shows a brief mint toast "Email confirmed — welcome.".
-6. User logs in. Server action reads session, redirects to `/dashboard`.
-7. Dashboard greets them, shows 0 uploads, real total-members count (which now includes them).
+**Flow A — Sign up → first order (primary)**
+1. Land on `/` (existing marketing page) → click "Get started" CTA in nav → `/signup`.
+2. Submit email + password + name → Supabase creates user → server-side `INSERT profiles` row (trigger) → on success, redirect `/onboarding`.
+3. Onboarding Step 1: drop file (client validates extension + size). Click Continue.
+4. Step 2: select material. Continue.
+5. Step 3: see quote. Click "Place order" → POST `/api/orders` → row created → redirect `/dashboard/orders/[id]`.
+6. Dashboard `/dashboard` now shows the order in the list.
 
-**Flow B — Returning user**
-1. Visits `/dashboard`. Middleware checks session; if absent, redirects to `/login?next=/dashboard`.
-2. Logs in with email + password. Supabase `signInWithPassword`. Server action redirects to `next` or `/dashboard`.
-3. Dashboard renders. Recent uploads list shows their real history.
+States: loading on submit (button spinner, disabled), error (inline red text under form), validation (empty file = disabled Continue), already onboarded (redirect from `/onboarding` → `/dashboard`).
 
-**Flow C — Upload**
-1. On `/upload`, user drags a `.stl` into the drop zone.
-2. Client validates: extension ∈ {stl, obj, 3mf}, size ≤ 50 MB. Invalid → inline error in sand block ("Only .STL, .OBJ, .3MF up to 50 MB.").
-3. Client computes triangle count and a simple manifold check (binary STL: every edge must appear in exactly 2 triangles). Updates the summary row.
-4. User clicks "Upload". File is `POST`ed to `/api/uploads` as `multipart/form-data`. Server validates again, reads auth session, uploads to Supabase Storage bucket `user-models` under path `${user_id}/${uuid}.${ext}`, inserts row into `uploads` (id, user_id, filename, size_bytes, format, triangle_count, manifold, storage_path, status, created_at).
-5. UI updates to success state with mint chip. User is offered "Upload another" or "Back to dashboard".
+**Flow B — Login**
+`/login` → submit → Supabase → redirect `/dashboard`. If session is fresh and `profiles.onboarded = false`, redirect `/onboarding` instead.
+
+**Flow C — Returning user with orders**
+`/dashboard` → click order row → detail page → click "Mark as printing" → status updates → return to dashboard, badge color updated.
 
 **Flow D — Sign out**
-1. User clicks "Sign out" in the sidebar (or `/settings`).
-2. `signOut()` from `@supabase/ssr` is called. Cookie cleared. Redirect to `/`.
+Avatar menu → Sign out → Supabase `signOut()` → redirect `/`.
 
-**Edge states:**
-- Unauthenticated visit to `/dashboard`, `/upload`, `/settings` → redirect to `/login?next=…`.
-- Authenticated visit to `/login` or `/signup` → redirect to `/dashboard`.
-- Network error on upload → error block "Upload failed — try again." (sand). No retry button auto-shown; user re-selects file.
-- Email already in use on signup → error "An account with that email already exists. Log in instead."
-- Password too short → client-side hint "Use at least 8 characters." (sand), submit disabled.
+**Flow E — Admin viewing signups**
+Login as the seeded admin user → nav has "Admin" link (only shown when `profiles.role = 'admin'`) → `/dashboard/admin/signups` shows counts + list.
 
 ## 5. PAGES / ROUTES
 
-| Route | Purpose | Auth | Layout / UI |
+| Route | Purpose | Auth | Layout / key UI |
 |---|---|---|---|
-| `/` | Existing landing page (untouched) | public | Hero, Features, CTA, FAQ, Pricing, Footer |
-| `/signup` | Create account | public only | Centered auth card, email/password/confirm fields |
-| `/login` | Log in | public only | Centered auth card, email/password |
-| `/dashboard` | Member home | protected | App shell + greeting + stat row + quick action + recent uploads |
-| `/upload` | Upload a model file | protected | App shell + drop zone + file summary + upload button |
-| `/settings` | Profile, password, sign out | protected | App shell + profile card + password card + sign-out card |
-| `/auth/confirm` | Supabase email confirmation handler | public | Server route that exchanges the code, then redirects to `/login?confirmed=1` |
-| `/auth/callback` | Generic Supabase OAuth/code exchange (unused for email/password but kept for safety) | public | Server route that calls `exchangeCodeForSession`, redirects to `/dashboard` |
-| `/api/uploads` | POST: receive multipart file, store, insert row | protected | Returns JSON `{ ok, upload }` or error |
-| `/api/waitlist` | POST: landing-page waitlist email | public | Returns JSON `{ ok }` or validation error |
-| `/api/analytics/signup-count` | GET: total signup_events count | protected | Returns `{ count }` |
+| `/` | Existing landing | public | unchanged |
+| `/login` | Email/password sign in | public | split layout, card form |
+| `/signup` | Email/password register | public | split layout, card form |
+| `/onboarding` | 3-step first order | auth, gated by `!onboarded` | stepper, full-width sections |
+| `/dashboard` | Account home | auth | top bar, 2-col body, orders + account cards |
+| `/dashboard/orders/new` | Upload + material + quote | auth | stepper, stacked sections, sticky CTA mobile |
+| `/dashboard/orders/[id]` | Order detail | auth | back link, status badge, summary card |
+| `/dashboard/orders` | List view (alias of dashboard orders card) | auth | same as dashboard card component, full-width |
+| `/dashboard/materials` | Material reference | auth | 3 expandable cards |
+| `/dashboard/account` | Profile + password | auth | form card |
+| `/dashboard/admin/signups` | Signup analytics (admin) | auth + role | number card + table |
+| `/api/orders` | POST create order | auth | server action or route handler |
+| `/api/orders/[id]/status` | PATCH status | auth + owner | route handler |
+| `/api/profile/onboarded` | POST mark complete | auth | route handler |
+| `/auth/callback` | Supabase email callback (if email confirm on) | public | exchanges code, redirects |
 
 ## 6. CORE FEATURES
 
-**F1 — Supabase Auth (email + password), `@supabase/ssr`**
-- Two helper modules: `lib/supabase/server.ts` (creates a server client bound to Next 15 cookies via `cookies()` from `next/headers`) and `lib/supabase/client.ts` (browser client).
-- `middleware.ts` uses `@supabase/ssr` `updateSession` to refresh the auth cookie on every request and gates `/dashboard`, `/upload`, `/settings`. Routes that require auth check `user` from the Supabase client; missing user → `NextResponse.redirect('/login?next=…')`.
-- Server actions for `signUp`, `signInWithPassword`, `signOut`, `updateProfile`, `updatePassword` live in `lib/actions/auth.ts`. Each returns `{ ok, error }` so the form can render errors inline.
-- Confirmation flow uses `/auth/confirm/route.ts` that accepts `?code=…`, calls `supabase.auth.exchangeCodeForSession(code)`, then redirects to `/login?confirmed=1`.
+**F1. Email/password auth (Supabase)**
+- Server client via `@supabase/ssr` `createServerClient` reading/writing cookies in App Router.
+- Client client for browser interactions.
+- Middleware (`middleware.ts`) refreshes session on every request and protects `/dashboard/*` and `/onboarding` (redirect to `/login?next=...` if no session).
+- Sign up: `supabase.auth.signUp({ email, password, options: { data: { full_name } } })`. DB trigger inserts `profiles` row with `id = auth.users.id`, `role = 'user'` (or `'admin'` if email matches `ADMIN_EMAIL` env).
+- Login: `signInWithPassword`.
+- Sign out: `signOut()` from client, then `router.push('/')` + `router.refresh()`.
+- Password change on account page.
+- No social buttons. No "forgot password" beyond Supabase's `resetPasswordForEmail` (a real working link in the card, sends to `redirectTo: /auth/callback?next=/dashboard/account`).
 
-**F2 — Protected dashboard**
-- Server component fetches `uploads` count for current user, total `signup_events` count, and last 5 uploads.
-- Renders the three stat cards, quick action, and recent uploads list described in §3.
-- The signup counter reads from `signup_events` (see F4) and is rendered server-side — no client polling.
+**F2. Onboarding gate**
+- `profiles.onboarded` boolean, default `false`.
+- Middleware OR a layout-level check: if logged in and `!onboarded` and route is not `/onboarding` or `/api/*`, redirect to `/onboarding`.
+- Onboarding page marks `onboarded = true` after step 3 (or on skip).
 
-**F3 — File upload (STL/OBJ/3MF)**
-- Drop zone is a client component using react-dropzone for accessibility (keyboard support: Enter/Space opens file picker).
-- Validation: extension whitelist `{stl, obj, 3mf}`, MIME sniff where possible, size ≤ 50 MB. All errors render inline in a sand block.
-- Triangle count for binary STL: read buffer, validate it's a binary STL (80-byte header + uint32 triangle count + 50 bytes/triangle), parse `Uint32Array` at offset 80, return count. For ASCII STL: scan for "facet normal" occurrences. For OBJ/3MF: show "—".
-- Manifold check (binary STL only): iterate triangles, for each of the 3 edges compute a hash (sorted pair of quantized vertex coords), count occurrences. If any edge appears once → non-manifold. Edge case: bbox quantization tolerance 1e-5 to absorb float jitter.
-- After success: `POST /api/uploads` with the file. Server re-validates, uses the authenticated `user.id`, uploads to Supabase Storage bucket `user-models`, inserts a row into `uploads`. Returns the new row.
-- Storage bucket policy: `user-models` is private. RLS policy `select/insert` only where `auth.uid() = (storage.foldername(name))[1]`. Downloads are by signed URL (out of scope for v1; not surfaced in UI).
+**F3. File upload**
+- Client-side only upload in this build (no real S3). File stays in component state, the filename + size + a base64 thumbnail (or just metadata) saved in `orders.file_meta` JSONB column. Honest copy: "Files are stored for 30 days for fulfillment purposes." (No fake claim of AI repair yet — that ships later. The field is reserved as `file_meta` so the schema is ready.)
+- Validates extension (`.stl`, `.obj`), size (≤50MB), shows error inline.
+- Drop zone with drag-over highlight (sky border, sand bg tint).
 
-**F4 — Signup analytics tracking**
-- Table `signup_events` (see Data Model). Insert happens inside the `signUp` server action, AFTER Supabase confirms user creation. Insert is best-effort: failure to insert does not block signup, but logs to console.
-- A SQL view or RPC `get_signup_count()` returns `count(*)`. Dashboard server component calls it.
-- Future hooks (documented in code comment, not built): page-view events via `lib/analytics.ts` no-op stub.
+**F4. Material selection**
+- Materials are a static client array (later can move to DB):
+  - `fdm_pla`: base $15, per-MB $0.50, lead 3-5 days
+  - `sla_resin`: base $40, per-MB $1.20, lead 4-6 days
+  - `sls_nylon`: base $50, per-MB $1.80, lead 5-8 days
+- Honest footnote: "Lead times are estimates. Final lead time confirmed after file review."
 
-**F5 — Profile / settings**
-- `display_name` is stored on `profiles` (separate from `auth.users` to keep writes simple). RLS: user can `select/update` only their own row.
-- Password change calls `supabase.auth.updateUser({ password })`. Requires the current session (Supabase re-auth challenge is out of scope; document the limitation in a comment).
-- Sign out clears cookies via the server action and redirects to `/`.
+**F5. Instant quote (mock)**
+- Pure function `computeQuote({ material, fileSizeMB })` returns `{ total, leadDaysMin, leadDaysMax }`.
+- Re-computes reactively on material change.
+- Rounded to 2 decimals with currency formatting.
 
-**F6 — Landing-page waitlist (existing form, wired to Supabase)**
-- Existing landing-page form gets a client handler that `POST`s JSON `{ email }` to `/api/waitlist`.
-- Server validates (RFC-5322-lite regex, length ≤ 254), inserts into `waitlist_emails`. Idempotent: on unique-conflict, return `{ ok: true }` anyway to avoid leaking which emails are on the list.
-- No email is sent back to the user from the waitlist in v1; the response is silent.
+**F6. Order submission**
+- POST `/api/orders` with `{ material, file_meta: { name, size_bytes, ext } }`.
+- Server validates session, validates body with zod, inserts row, returns `{ id, order_number }`.
+- Order number format: `GO-` + 6-digit zero-padded sequential id (e.g. `GO-000042`).
+
+**F7. Orders list + detail**
+- Server component reads from Supabase with `eq('user_id', user.id)`, ordered `created_at desc`.
+- Detail page: `eq('id', params.id)` + `eq('user_id', user.id)` (RLS enforces this too).
+- Status transition: only `submitted → in_review → printing → shipped` allowed (validated server-side). `cancelled` allowed only from `submitted`.
+
+**F8. Account editing**
+- `updateUser({ password })` for password.
+- `updateUser({ data: { full_name } })` for name, mirrored to `profiles.full_name` via upsert.
+
+**F9. Admin signup analytics**
+- Role check: if `profiles.role === 'admin'`, render page.
+- Total count: `select count(*)`.
+- Recent list: `select email, created_at, last_sign_in_at from profiles order by created_at desc limit 50`.
+
+**F10. Analytics (PostHog or simple)**
+- PostHog preferred if `NEXT_PUBLIC_POSTHOG_KEY` is set; otherwise a no-op `track()` helper that `console.debug`s in dev.
+- Track: `signup_completed`, `login_completed`, `order_submitted`, `onboarding_step_completed` with `step` property.
+- Loaded via `posthog-js` in a client provider, initialized after consent banner (simple "We use anonymous analytics" footer banner with Accept/Dismiss; choice stored in localStorage).
+
+**F11. Protected route middleware**
+- `middleware.ts` uses `@supabase/ssr` `updateSession`, redirects unauthenticated `/dashboard/*` to `/login?next=...`, and redirects onboarded users away from `/onboarding` to `/dashboard`.
 
 ## 7. DATA MODEL
 
-**Table `profiles`** (one row per user, created on first login via trigger or on-demand upsert)
-- `user_id uuid PK references auth.users(id) on delete cascade`
-- `display_name text`
-- `created_at timestamptz default now()`
-- `updated_at timestamptz default now()`
-- RLS: `select`/`update` where `auth.uid() = user_id`.
+**`profiles`** (1:1 with `auth.users`, created by trigger)
+- `id uuid PK` references `auth.users(id)`
+- `email text`
+- `full_name text`
+- `role text` — `'user' | 'admin'`, default `'user'`
+- `onboarded boolean` default `false`
+- `created_at timestamptz` default `now()`
+- `last_sign_in_at timestamptz` (synced from auth metadata optionally, otherwise set on first dashboard load)
 
-**Table `signup_events`**
-- `id bigserial PK`
-- `user_id uuid references auth.users(id) on delete set null`
-- `email text not null`
-- `source text not null` — one of `'signup_form'`, `'admin_seed'`
-- `created_at timestamptz default now()`
-- RLS: `select` for authenticated users (so dashboard can show count); `insert` only via service role or via a SECURITY DEFINER function called from the signup server action. Simpler: allow `insert` for `authenticated` role only when `auth.uid() = user_id`; service-role key is used server-side anyway. Decision: insert from server using service-role client, RLS off for that client.
-
-**Table `uploads`**
+**`orders`**
 - `id uuid PK default gen_random_uuid()`
-- `user_id uuid not null references auth.users(id) on delete cascade`
-- `filename text not null`
-- `size_bytes bigint not null`
-- `format text not null check (format in ('stl','obj','3mf'))`
-- `triangle_count integer`
-- `manifold boolean`
-- `storage_path text not null`
-- `status text not null default 'uploaded' check (status in ('uploaded','processing','ready','failed'))`
-- `created_at timestamptz default now()`
-- Index on `(user_id, created_at desc)`.
-- RLS: `select`/`insert` where `auth.uid() = user_id`. No `update`/`delete` for users.
+- `order_number text UNIQUE` — `GO-` + zero-padded id-derived
+- `user_id uuid` references `profiles(id)`
+- `material text` — `'fdm_pla' | 'sla_resin' | 'sls_nylon'`
+- `file_meta jsonb` — `{ name, size_bytes, ext }`
+- `quote_cents integer`
+- `lead_days_min integer`
+- `lead_days_max integer`
+- `status text` default `'submitted'`
+- `created_at timestamptz` default `now()`
+- `updated_at timestamptz` default `now()`
 
-**Table `waitlist_emails`**
-- `id bigserial PK`
-- `email text not null unique`
-- `source text default 'landing'`
-- `created_at timestamptz default now()`
-- RLS: `insert` for `anon` and `authenticated`; `select` only for `service_role`. This keeps emails private from other users while letting the public form write.
+**`material_prices`** (optional, can stay client-side for v1; define table for future)
+- `key text PK`
+- `name text`
+- `description text`
+- `base_cents integer`
+- `per_mb_cents integer`
+- `lead_days_min integer`
+- `lead_days_max integer`
 
-**Supabase Storage bucket `user-models`**
-- Private. Path convention: `{user_id}/{uuid}.{ext}`. Policies per F3.
+**RLS policies (Supabase):**
+- `profiles`: user can `select`/`update` own row. Admin can `select all`. (Admin can be enforced by a Postgres function `is_admin()` reading `auth.jwt() ->> 'role'` OR by checking the `profiles` table in a SECURITY DEFINER function to avoid recursion.)
+- `orders`: user can `select`/`insert`/`update` own rows (`user_id = auth.uid()`).
+
+**Trigger:** on `auth.users` insert, insert into `profiles` with `id`, `email`, and set `role` to `'admin'` if email matches an env var `ADMIN_EMAIL`.
 
 ## 8. AUTH
 
-Email + password via Supabase Auth, using `@supabase/ssr` for Next.js 15 App Router cookie handling. **No Clerk. No social OAuth buttons.**
+- **Method:** Email + password via Supabase Auth.
+- **Library:** `@supabase/ssr` (Next.js 15 App Router compatible). Three clients: browser, server (route handlers + server components), middleware.
+- **No social OAuth.** No Clerk.
+- **Email confirmation:** Off by default for dev (`supabase.auth.admin.createUser` not needed; sign up works directly). If turned on, `/auth/callback` route handles the exchange.
+- **Password reset:** "Forgot password" link on `/login` triggers `resetPasswordForEmail` with `redirectTo` → `/auth/callback?next=/dashboard/account`. Honest copy: "Check your email."
+- **Session:** cookie-based, refreshed in middleware.
 
-- Server client in `lib/supabase/server.ts` reads/writes cookies via `next/headers`.
-- Browser client in `lib/supabase/client.ts` for client components.
-- Middleware refreshes the session on every request via `updateSession`.
-- Sign-up uses `supabase.auth.signUp({ email, password, options: { emailRedirectTo: '.../auth/confirm' } })`.
-- Log-in uses `supabase.auth.signInWithPassword({ email, password })`.
-- Confirmation handled at `/auth/confirm/route.ts`.
-- Sign-out uses `supabase.auth.signOut()` then `redirect('/')`.
-- Email + password is the ONLY sign-in method. No Google, GitHub, Apple, or "Continue with X" buttons — those would be dead without OAuth credentials.
+## 9. FILES
 
-## 9. FILE TREE (delta vs. existing landing page)
-
-(Full file tree below in the FILES list — see end.)
+```
+FILES: [
+  "middleware.ts",
+  "app/layout.tsx",
+  "app/globals.css",
+  "app/page.tsx",
+  "app/login/page.tsx",
+  "app/login/actions.ts",
+  "app/signup/page.tsx",
+  "app/signup/actions.ts",
+  "app/auth/callback/route.ts",
+  "app/onboarding/page.tsx",
+  "app/onboarding/actions.ts",
+  "app/dashboard/layout.tsx",
+  "app/dashboard/page.tsx",
+  "app/dashboard/orders/page.tsx",
+  "app/dashboard/orders/new/page.tsx",
+  "app/dashboard/orders/new/actions.ts",
+  "app/dashboard/orders/[id]/page.tsx",
+  "app/dashboard/orders/[id]/actions.ts",
+  "app/dashboard/materials/page.tsx",
+  "app/dashboard/account/page.tsx",
+  "app/dashboard/account/actions.ts",
+  "app/dashboard/admin/signups/page.tsx",
+  "app/api/orders/route.ts",
+  "app/api/orders/[id]/status/route.ts",
+  "lib/supabase/client.ts",
+  "lib/supabase/server.ts",
+  "lib/supabase/middleware.ts",
+  "lib/supabase/admin.ts",
+  "lib/auth.ts",
+  "lib/analytics.ts",
+  "lib/quote.ts",
+  "lib/materials.ts",
+  "lib/orders.ts",
+  "components/ui/Button.tsx",
+  "components/ui/Card.tsx",
+  "components/ui/Field.tsx",
+  "components/ui/Badge.tsx",
+  "components/ui/EmptyState.tsx",
+  "components/ui/Stepper.tsx",
+  "components/ui/DropZone.tsx",
+  "components/TopBar.tsx",
+  "components/UserMenu.tsx",
+  "components/PostHogProvider.tsx",
+  "components/AnalyticsBanner.tsx",
+  "supabase/migrations/0001_init.sql",
+  "supabase/migrations/0002_triggers.sql",
+  "supabase/migrations/0003_rls.sql",
+  "supabase/seed.sql",
+  "tailwind.config.ts",
+  ".env.local.example",
+  "package.json"
+]
+```
 
 ## 10. ACCEPTANCE
 
-- [ ] `npm run build` succeeds with zero TypeScript errors and zero ESLint errors.
-- [ ] `npm run dev` serves `/` (landing) unchanged visually and functionally.
-- [ ] Existing landing-page waitlist form submits to `/api/waitlist`; a row appears in `waitlist_emails` in Supabase.
-- [ ] `/signup` creates a Supabase auth user; a row appears in `signup_events` with matching `user_id` and `email`.
-- [ ] Email confirmation link from Supabase redirects through `/auth/confirm` and lands on `/login?confirmed=1` with the toast.
-- [ ] `/login` with valid credentials redirects to `/dashboard`.
-- [ ] `/dashboard`, `/upload`, `/settings` all redirect to `/login?next=…` when unauthenticated.
-- [ ] `/login` and `/signup` redirect to `/dashboard` when already authenticated.
-- [ ] `/dashboard` shows real numbers from the DB (this user's upload count, total signup count). No hardcoded fake numbers anywhere.
-- [ ] `/upload` accepts a valid `.stl` ≤ 50 MB, uploads to Supabase Storage under `${user_id}/`, and inserts a row into `uploads`.
-- [ ] `/upload` rejects `.txt`, `.zip`, files > 50 MB, with an inline sand error.
-- [ ] Triangle count is computed client-side for binary STL and shown in the success state.
-- [ ] `/settings` updates `profiles.display_name` and shows a mint "Saved" toast.
-- [ ] `/settings` updates the password via `supabase.auth.updateUser` and confirms success.
-- [ ] Sign out clears the session cookie and redirects to `/`.
-- [ ] No use of `dynamic = 'error'`. Where dynamic rendering is required (auth reads in server components), use `export const dynamic = 'force-dynamic'` only if needed; prefer relying on cookies to opt into dynamic rendering.
-- [ ] No Clerk anywhere in the codebase. No dead Google/GitHub sign-in buttons.
-- [ ] No invented testimonials, logos, user counts, ratings, or press mentions anywhere in the app or on the landing page.
-- [ ] Visual style (colors, fonts, spacing, components) matches the existing landing-page theme: sky `#6DB5D2`, mint `#A5D8C1`, sand `#E8CDA0`, soft white `#F5F8FA`, Geist + Lora, calm/quiet tone.
+Done and working means:
 
-FILES: ["app/signup/page.tsx", "app/login/page.tsx", "app/dashboard/page.tsx", "app/dashboard/DashboardClient.tsx", "app/upload/page.tsx", "app/upload/UploadClient.tsx", "app/settings/page.tsx", "app/settings/SettingsClient.tsx", "app/auth/confirm/route.ts", "app/auth/callback/route.ts", "app/api/uploads/route.ts", "app/api/waitlist/route.ts", "app/api/analytics/signup-count/route.ts", "middleware.ts", "lib/supabase/client.ts", "lib/supabase/server.ts", "lib/supabase/service.ts", "lib/actions/auth.ts", "lib/actions/uploads.ts", "lib/actions/profile.ts", "lib/analytics.ts", "lib/stl.ts", "lib/validation.ts", "components/app/AppShell.tsx", "components/app/Sidebar.tsx", "components/app/TopBar.tsx", "components/app/StatCard.tsx", "components/app/DropZone.tsx", "components/app/Toast.tsx", "components/landing/WaitlistForm.tsx", "supabase/migrations/0001_init.sql", "tailwind.config.ts", "app/globals.css", ".env.local.example", "README.md"]
+- [ ] `npm run build` succeeds with no TS errors.
+- [ ] Sign up with email + password creates a Supabase user, triggers a `profiles` row, and lands the user on `/onboarding`.
+- [ ] Login with the same credentials returns to `/dashboard`.
+- [ ] Visiting `/dashboard` while signed out redirects to `/login?next=/dashboard`.
+- [ ] Visiting `/dashboard` for the first time (no `onboarded=true`) redirects to `/onboarding`.
+- [ ] Onboarding step 1 accepts a `.stl` or `.obj` file ≤50MB; rejects other types with inline error.
+- [ ] Onboarding step 2 shows 3 material options; selection is visually obvious.
+- [ ] Onboarding step 3 shows a mock quote calculated from file size + selected material.
+- [ ] "Place order" creates a row in `orders` and routes to `/dashboard/orders/[id]` with order number `GO-XXXXXX`.
+- [ ] The order appears in the `/dashboard` orders list.
+- [ ] Logout from the user menu returns to `/` and clears the session cookie.
+- [ ] RLS: a second signed-up user cannot read the first user's orders (verified by manual test or SQL check).
+- [ ] Admin user (matched by `ADMIN_EMAIL` env) sees an "Admin" link in the top bar and `/dashboard/admin/signups` shows the total count and a list of recent signups.
+- [ ] Non-admin visiting `/dashboard/admin/signups` sees 404.
+- [ ] Existing landing page renders unchanged; design system tokens (sky/mint/sand) are reused on all new screens.
+- [ ] Every button on every page routes to a real, working destination (no dead buttons).
+- [ ] No fake testimonials, no invented customer logos, no fake metric counters in any copy.
+- [ ] PostHog (or analytics shim) fires `signup_completed`, `order_subpleted`, `onboarding_step_completed` events.
+- [ ] `middleware.ts` refreshes the Supabase session on every request.
+- [ ] Empty states are shown (not blank screens) on `/dashboard` orders and `/dashboard/admin/signups` for new accounts.
+- [ ] Mobile (375px): all new screens are usable; sticky CTA on `/dashboard/orders/new` is reachable.# Goon — Full App Build Plan
+
+## 1. PRODUCT
+
+Goon extends its on-demand 3D printing landing page into a working web app where hobbyist inventors sign up, upload a 3D model, pick a material, and get a price quote in one sitting — without account minimums, RFQ forms, or sales calls. The product closes the loop from marketing site to first quote: the value is "go from CAD file to a real, priced print order in under three minutes." The pain it solves is the one the research names explicitly: the consumer/hobbyist segment is underserved post-Shapeways, and existing platforms (Xometry, Hubs, Ponoko) gate hobbyists behind B2B UX — minimum orders, sales contact, slow manual quotes. Goon's product removes that friction with a single dashboard flow: upload → select → quote → submit.
+
+## 2. WHO IT'S FOR
+
+The ICP from research is an independent inventor or hobbyist creator, 25–55, technically inclined, with imperfect CAD files who needs fast, affordable prototyping with no minimum order. This shapes every product decision:
+
+- **No jargon-heavy B2B language.** Copy says "Upload your file," not "Submit geometry for manufacturability review."
+- **No dashboards-within-dashboards.** Side nav is flat. The post-login landing is the next action: upload.
+- **No fake social proof.** No "trusted by 10,000 makers" or invented logos. Honest empty states instead.
+- **Mobile-tolerant, not mobile-first** — hobbyists use laptops for CAD work, but upload must work from phone.
+- **Tone: calm, direct, slightly playful** — matches the Calm System visual brand. The research says this segment is time-poor; copy is short.
+
+## 3. LOOK & FEEL
+
+The existing Calm System is preserved exactly. New screens extend it without reinventing the visual language.
+
+**Palette (locked, from existing globals.css):**
+- Primary sky blue `#6DB5D2` — CTAs, links, focus rings
+- Mint `#A5D8C1` — success states, progress, "ready" badges
+- Sand `#E8CDA0` — highlights, quote panel background, warm accent
+- Soft white `#F5F8FA` — page background
+- Ink `#1A2330` — body text
+- Mute `#6B7785` — secondary text
+
+**Typography:** Geist Sans for UI/numbers, Lora for the one accent line per screen (used in quote panel and welcome hero). No new fonts.
+
+**Spacing:** 8px base unit. Sections padded `py-16` desktop / `py-10` mobile. Card radius `rounded-2xl` (16px), buttons `rounded-xl` (12px). Generous whitespace — the brand is "calm."
+
+**Iconography:** Lucide-react (already likely present; add if not). Stroke 1.5px, 20px default. Icons: Upload, Box, Layers, Clock, FileCheck, LogOut, Settings, ChevronRight, Check.
+
+**Imagery:** No stock photos, no product shots of prints (we don't have any yet — honest empty state). Use abstract orbit SVG mark (existing) and gradient washes of sky→mint on hero areas. The upload screen uses a dashed-border drop zone, not a product image.
+
+**Motion:** Subtle only. Drop zone border pulses (1.5s) on drag-over. Spinner uses the orbit mark rotating. Page transitions: no animation library — `transition-opacity duration-200` on route content. Respect `prefers-reduced-motion`.
+
+**Components (reusable, built once):**
+- `<Button variant="primary|secondary|ghost">` — primary uses sky blue, secondary is white with sky border, ghost is text-only with hover bg.
+- `<Card>` — `bg-white rounded-2xl border border-slate-200/60 p-6 shadow-[0_1px_2px_rgba(26,35,48,0.04)]`
+- `<Field>` — label + input + helper text, Geist Sans.
+- `<Badge>` — mint bg for success, sand bg for "draft," sky bg for "in review."
+- `<EmptyState icon title body cta>` — used wherever data is empty.
+- `<Stepper steps={[]} current={n} />` — for onboarding.
+- `<DropZone onFile accept />` — dashed border, drag-over state, file preview row.
+
+---
+
+### Screens, top to bottom
+
+**`/login` and `/signup` (auth pages)**
+Split layout, but on mobile stacks. Left 60% on desktop: centered card on soft-white page. Card max-width 420px, white, rounded-2xl, p-8.
+- Logo + wordmark top
+- H1 in Geist 28px: "Welcome back" (login) / "Create your Goon account" (signup)
+- Lora accent line below: "Print your first part today."
+- Fields: Email, Password (signup adds Full name, optional)
+- Primary button full width: "Log in" / "Create account"
+- Below button, small link: "Don't have an account? Sign up" / "Already have an account? Log in"
+- Tiny footnote: "By continuing you agree to our Terms and Privacy." (No link to fake Terms — text only, neutral)
+- Right 40% on desktop: subtle sky→mint gradient with large faded orbit SVG. Hidden on mobile.
+
+**`/onboarding` (post-signup, first visit only)**
+Full-height page, max-width 720px, centered.
+- Top: `<Stepper>` showing 3 steps: "Upload file" / "Choose material" / "Get your quote"
+- Step 1 active: title "Let's print something." Lora subline "Three minutes from file to quote."
+- Single drop zone (full width, 240px tall) with upload icon and "Drop your .STL or .OBJ here, or click to browse"
+- Below: small text "Max 50MB. Files stay private to your account."
+- "Continue" button disabled until a file is attached. On click → Step 2.
+- Step 2: radio cards for 3 materials (FDM PLA, SLA Resin, SLS Nylon) with sand highlight on selected, small description and "from $X" placeholder.
+- "Continue" → Step 3.
+- Step 3: quote panel — sand background, Lora headline "Your instant quote," then a line "Quote: $XX.XX" (mocked from file size heuristic), "Lead time: ~3-5 days" (honest placeholder for now). Two buttons: "Place order" (primary, submits and routes to `/dashboard/orders/[id]`) and "Save for later" (secondary, goes to `/dashboard`).
+- Top-right of page: "Skip onboarding" link → `/dashboard`.
+
+**`/dashboard` (home for logged-in users)**
+Top bar: small Goon mark + wordmark (left), user email + avatar circle (initial) + dropdown (Account, Sign out) on right. Below: subtle 1px border.
+Body max-width 1120px, p-8.
+- H1: "Welcome back, {firstName}."
+- Lora subline: "Ready to print?"
+- Two columns on desktop (stacks mobile):
+  - **Left col (8/12):** "Your orders" card. If empty: `<EmptyState>` with Box icon, "No orders yet," "Upload a file to get your first quote," CTA button "Start an order" → `/dashboard/orders/new`.
+  - If orders exist: table-ish list (cards on mobile) with columns: Order # (e.g. `GO-000123`), File name, Material badge, Status badge, Quote amount, Date. Click row → `/dashboard/orders/[id]`. "New order" button top-right of card.
+  - Below orders card: "Quick actions" row — two small cards: "Upload a file" (icon Upload) and "Browse materials" (icon Layers). Both route somewhere real (`/dashboard/orders/new` and `/dashboard/materials`).
+- **Right col (4/12):** "Account" card — email, member since date, "Edit profile" link to `/dashboard/account`. Below: "Admin: Signup analytics" card — visible only to the first signed-up user (treated as admin for this build; logic in RLS/role column). Shows total signup count (big number) and a list of 10 most recent signups (email + created_at). No real PII redacted in the DB.
+
+**`/dashboard/orders/new` (the core flow — upload → material → quote → submit)**
+Single page, 3 visible sections stacked, but state-driven (no multi-page reload). Stepper at top identical to onboarding but persistent.
+
+- **Section 1: Upload.** Drop zone 200px tall. When file attached, replace with a row: file icon, file name, size, "Remove" ghost link. If re-uploading, replace the row.
+- **Section 2: Material.** 3 radio cards in a row (1 col on mobile). Each card: material name, short description (1 line), technology tag (FDM/SLA/SLS), "from $X" base price.
+- **Section 3: Quote (sticky on desktop, inline on mobile).** Sand-tinted card. Shows: selected material, computed quote (mock formula: `basePrice + (fileSizeMB * perMBrate)` with sane per-material rates), lead time range. Quote is mock-calculated client-side, clearly labeled in a tiny line: "Instant estimate. Final price confirmed by email."
+- Sticky bottom bar on mobile with "Place order" primary button. On desktop, button inside the quote card.
+- On submit: create order row in Supabase, route to `/dashboard/orders/[id]` showing confirmation card with order #, summary, "We'll email when it's ready." (Email is mocked; honest placeholder text "Email notifications: coming soon" if Resend not configured.)
+
+**`/dashboard/orders/[id]`**
+- Back link "← All orders"
+- H1: `Order GO-000123`
+- Status badge (top right): "Submitted" (sky) → "In review" (sand) → "Printing" (mint) → "Shipped" (mint, with check). For now, statuses are set by the user clicking "Mark as..." buttons in a small "Update status" card — an honest dev-mode affordance. Real status will come from the fulfillment system later.
+- Card: file name, material, quote, ordered at.
+- "Cancel order" ghost button (only if status = Submitted).
+
+**`/dashboard/materials`**
+Static reference page. 3 expandable cards (FDM / SLA / SLS) with one paragraph each, finishes, tolerances, ideal use. All from research. No fake numbers beyond the per-material base price already shown elsewhere.
+
+**`/dashboard/account`**
+- Read-only fields: email (editable → Supabase `updateUser`), display name, member since.
+- "Change password" inline form (current + new + confirm) calling Supabase `updateUser`.
+- "Sign out" button bottom.
+
+**`/dashboard/admin/signups` (admin only, role-gated)**
+- If non-admin hits it: 404.
+- Big number: total users.
+- Table: email, created_at, last_sign_in_at. Pagination simple (limit 50, "Load more").
+
+## 4. USER FLOWS
+
+**Flow A — Sign up → first order (primary)**
+1. Land on `/` (existing marketing page) → click "Get started" CTA in nav → `/signup`.
+2. Submit email + password + name → Supabase creates user → server-side `INSERT profiles` row (trigger) → on success, redirect `/onboarding`.
+3. Onboarding Step 1: drop file (client validates extension + size). Click Continue.
+4. Step 2: select material. Continue.
+5. Step 3: see quote. Click "Place order" → POST `/api/orders` → row created → redirect `/dashboard/orders/[id]`.
+6. Dashboard `/dashboard` now shows the order in the list.
+
+States: loading on submit (button spinner, disabled), error (inline red text under form), validation (empty file = disabled Continue), already onboarded (redirect from `/onboarding` → `/dashboard`).
+
+**Flow B — Login**
+`/login` → submit → Supabase → redirect `/dashboard`. If session is fresh and `profiles.onboarded = false`, redirect `/onboarding` instead.
+
+**Flow C — Returning user with orders**
+`/dashboard` → click order row → detail page → click "Mark as printing" → status updates → return to dashboard, badge color updated.
+
+**Flow D — Sign out**
+Avatar menu → Sign out → Supabase `signOut()` → redirect `/`.
+
+**Flow E — Admin viewing signups**
+Login as the seeded admin user → nav has "Admin" link (only shown when `profiles.role = 'admin'`) → `/dashboard/admin/signups` shows counts + list.
+
+## 5. PAGES / ROUTES
+
+| Route | Purpose | Auth | Layout / key UI |
+|---|---|---|---|
+| `/` | Existing landing | public | unchanged |
+| `/login` | Email/password sign in | public | split layout, card form |
+| `/signup` | Email/password register | public | split layout, card form |
+| `/onboarding` | 3-step first order | auth, gated by `!onboarded` | stepper, full-width sections |
+| `/dashboard` | Account home | auth | top bar, 2-col body, orders + account cards |
+| `/dashboard/orders/new` | Upload + material + quote | auth | stepper, stacked sections, sticky CTA mobile |
+| `/dashboard/orders/[id]` | Order detail | auth | back link, status badge, summary card |
+| `/dashboard/orders` | List view (alias of dashboard orders card) | auth | same as dashboard card component, full-width |
+| `/dashboard/materials` | Material reference | auth | 3 expandable cards |
+| `/dashboard/account` | Profile + password | auth | form card |
+| `/dashboard/admin/signups` | Signup analytics (admin) | auth + role | number card + table |
+| `/api/orders` | POST create order | auth | server action or route handler |
+| `/api/orders/[id]/status` | PATCH status | auth + owner | route handler |
+| `/api/profile/onboarded` | POST mark complete | auth | route handler |
+| `/auth/callback` | Supabase email callback (if email confirm on) | public | exchanges code, redirects |
+
+## 6. CORE FEATURES
+
+**F1. Email/password auth (Supabase)**
+- Server client via `@supabase/ssr` `createServerClient` reading/writing cookies in App Router.
+- Client client for browser interactions.
+- Middleware (`middleware.ts`) refreshes session on every request and protects `/dashboard/*` and `/onboarding` (redirect to `/login?next=...` if no session).
+- Sign up: `supabase.auth.signUp({ email, password, options: { data: { full_name } } })`. DB trigger inserts `profiles` row with `id = auth.users.id`, `role = 'user'` (or `'admin'` if email matches `ADMIN_EMAIL` env).
+- Login: `signInWithPassword`.
+- Sign out: `signOut()` from client, then `router.push('/')` + `router.refresh()`.
+- Password change on account page.
+- No social buttons. No "forgot password" beyond Supabase's `resetPasswordForEmail` (a real working link in the card, sends to `redirectTo: /auth/callback?next=/dashboard/account`).
+
+**F2. Onboarding gate**
+- `profiles.onboarded` boolean, default `false`.
+- Middleware OR a layout-level check: if logged in and `!onboarded` and route is not `/onboarding` or `/api/*`, redirect to `/onboarding`.
+- Onboarding page marks `onboarded = true` after step 3 (or on skip).
+
+**F3. File upload**
+- Client-side only upload in this build (no real S3). File stays in component state, the filename + size + a base64 thumbnail (or just metadata) saved in `orders.file_meta` JSONB column. Honest copy: "Files are stored for 30 days for fulfillment purposes." (No fake claim of AI repair yet — that ships later. The field is reserved as `file_meta` so the schema is ready.)
+- Validates extension (`.stl`, `.obj`), size (≤50MB), shows error inline.
+- Drop zone with drag-over highlight (sky border, sand bg tint).
+
+**F4. Material selection**
+- Materials are a static client array (later can move to DB):
+  - `fdm_pla`: base $15, per-MB $0.50, lead 3-5 days
+  - `sla_resin`: base $40, per-MB $1.20, lead 4-6 days
+  - `sls_nylon`: base $50, per-MB $1.80, lead 5-8 days
+- Honest footnote: "Lead times are estimates. Final lead time confirmed after file review."
+
+**F5. Instant quote (mock)**
+- Pure function `computeQuote({ material, fileSizeMB })` returns `{ total, leadDaysMin, leadDaysMax }`.
+- Re-computes reactively on material change.
+- Rounded to 2 decimals with currency formatting.
+
+**F6. Order submission**
+- POST `/api/orders` with `{ material, file_meta: { name, size_bytes, ext } }`.
+- Server validates session, validates body with zod, inserts row, returns `{ id, order_number }`.
+- Order number format: `GO-` + 6-digit zero-padded sequential id (e.g. `GO-000042`).
+
+**F7. Orders list + detail**
+- Server component reads from Supabase with `eq('user_id', user.id)`, ordered `created_at desc`.
+- Detail page: `eq('id', params.id)` + `eq('user_id', user.id)` (RLS enforces this too).
+- Status transition: only `submitted → in_review → printing → shipped` allowed (validated server-side). `cancelled` allowed only from `submitted`.
+
+**F8. Account editing**
+- `updateUser({ password })` for password.
+- `updateUser({ data: { full_name } })` for name, mirrored to `profiles.full_name` via upsert.
+
+**F9. Admin signup analytics**
+- Role check: if `profiles.role === 'admin'`, render page.
+- Total count: `select count(*)`.
+- Recent list: `select email, created_at, last_sign_in_at from profiles order by created_at desc limit 50`.
+
+**F10. Analytics (PostHog or simple)**
+- PostHog preferred if `NEXT_PUBLIC_POSTHOG_KEY` is set; otherwise a no-op `track()` helper that `console.debug`s in dev.
+- Track: `signup_completed`, `login_completed`, `order_submitted`, `onboarding_step_completed` with `step` property.
+- Loaded via `posthog-js` in a client provider, initialized after consent banner (simple "We use anonymous analytics" footer banner with Accept/Dismiss; choice stored in localStorage).
+
+**F11. Protected route middleware**
+- `middleware.ts` uses `@supabase/ssr` `updateSession`, redirects unauthenticated `/dashboard/*` to `/login?next=...`, and redirects onboarded users away from `/onboarding` to `/dashboard`.
+
+## 7. DATA MODEL
+
+**`profiles`** (1:1 with `auth.users`, created by trigger)
+- `id uuid PK` references `auth.users(id)`
+- `email text`
+- `full_name text`
+- `role text` — `'user' | 'admin'`, default `'user'`
+- `onboarded boolean` default `false`
+- `created_at timestamptz` default `now()`
+- `last_sign_in_at timestamptz` (synced from auth metadata optionally, otherwise set on first dashboard load)
+
+**`orders`**
+- `id uuid PK default gen_random_uuid()`
+- `order_number text UNIQUE` — `GO-` + zero-padded id-derived
+- `user_id uuid` references `profiles(id)`
+- `material text` — `'fdm_pla' | 'sla_resin' | 'sls_nylon'`
+- `file_meta jsonb` — `{ name, size_bytes, ext }`
+- `quote_cents integer`
+- `lead_days_min integer`
+- `lead_days_max integer`
+- `status text` default `'submitted'`
+- `created_at timestamptz` default `now()`
+- `updated_at timestamptz` default `now()`
+
+**`material_prices`** (optional, can stay client-side for v1; define table for future)
+- `key text PK`
+- `name text`
+- `description text`
+- `base_cents integer`
+- `per_mb_cents integer`
+- `lead_days_min integer`
+- `lead_days_max integer`
+
+**RLS policies (Supabase):**
+- `profiles`: user can `select`/`update` own row. Admin can `select all`. (Admin can be enforced by a Postgres function `is_admin()` reading `auth.jwt() ->> 'role'` OR by checking the `profiles` table in a SECURITY DEFINER function to avoid recursion.)
+- `orders`: user can `select`/`insert`/`update` own rows (`user_id = auth.uid()`).
+
+**Trigger:** on `auth.users` insert, insert into `profiles` with `id`, `email`, and set `role` to `'admin'` if email matches an env var `ADMIN_EMAIL`.
+
+## 8. AUTH
+
+- **Method:** Email + password via Supabase Auth.
+- **Library:** `@supabase/ssr` (Next.js 15 App Router compatible). Three clients: browser, server (route handlers + server components), middleware.
+- **No social OAuth.** No Clerk.
+- **Email confirmation:** Off by default for dev (`supabase.auth.admin.createUser` not needed; sign up works directly). If turned on, `/auth/callback` route handles the exchange.
+- **Password reset:** "Forgot password" link on `/login` triggers `resetPasswordForEmail` with `redirectTo` → `/auth/callback?next=/dashboard/account`. Honest copy: "Check your email."
+- **Session:** cookie-based, refreshed in middleware.
+
+## 9. FILES
+
 ```
+FILES: [
+  "middleware.ts",
+  "app/layout.tsx",
+  "app/globals.css",
+  "app/page.tsx",
+  "app/login/page.tsx",
+  "app/login/actions.ts",
+  "app/signup/page.tsx",
+  "app/signup/actions.ts",
+  "app/auth/callback/route.ts",
+  "app/onboarding/page.tsx",
+  "app/onboarding/actions.ts",
+  "app/dashboard/layout.tsx",
+  "app/dashboard/page.tsx",
+  "app/dashboard/orders/page.tsx",
+  "app/dashboard/orders/new/page.tsx",
+  "app/dashboard/orders/new/actions.ts",
+  "app/dashboard/orders/[id]/page.tsx",
+  "app/dashboard/orders/[id]/actions.ts",
+  "app/dashboard/materials/page.tsx",
+  "app/dashboard/account/page.tsx",
+  "app/dashboard/account/actions.ts",
+  "app/dashboard/admin/signups/page.tsx",
+  "app/api/orders/route.ts",
+  "app/api/orders/[id]/status/route.ts",
+  "lib/supabase/client.ts",
+  "lib/supabase/server.ts",
+  "lib/supabase/middleware.ts",
+  "lib/supabase/admin.ts",
+  "lib/auth.ts",
+  "lib/analytics.ts",
+  "lib/quote.ts",
+  "lib/materials.ts",
+  "lib/orders.ts",
+  "components/ui/Button.tsx",
+  "components/ui/Card.tsx",
+  "components/ui/Field.tsx",
+  "components/ui/Badge.tsx",
+  "components/ui/EmptyState.tsx",
+  "components/ui/Stepper.tsx",
+  "components/ui/DropZone.tsx",
+  "components/TopBar.tsx",
+  "components/UserMenu.tsx",
+  "components/PostHogProvider.tsx",
+  "components/AnalyticsBanner.tsx",
+  "supabase/migrations/0001_init.sql",
+  "supabase/migrations/0002_triggers.sql",
+  "supabase/migrations/0003_rls.sql",
+  "supabase/seed.sql",
+  "tailwind.config.ts",
+  ".env.local.example",
+  "package.json"
+]
+```
+
+## 10. ACCEPTANCE
+
+Done and working means:
+
+- [ ] `npm run build` succeeds with no TS errors.
+- [ ] Sign up with email + password creates a Supabase user, triggers a `profiles` row, and lands the user on `/onboarding`.
+- [ ] Login with the same credentials returns to `/dashboard`.
+- [ ] Visiting `/dashboard` while signed out redirects to `/login?next=/dashboard`.
+- [ ] Visiting `/dashboard` for the first time (no `onboarded=true`) redirects to `/onboarding`.
+- [ ] Onboarding step 1 accepts a `.stl` or `.obj` file ≤50MB; rejects other types with inline error.
+- [ ] Onboarding step 2 shows 3 material options; selection is visually obvious.
+- [ ] Onboarding step 3 shows a mock quote calculated from file size + selected material.
+- [ ] "Place order" creates a row in `orders` and routes to `/dashboard/orders/[id]` with order number `GO-XXXXXX`.
+- [ ] The order appears in the `/dashboard` orders list.
+- [ ] Logout from the user menu returns to `/` and clears the session cookie.
+- [ ] RLS: a second signed-up user cannot read the first user's orders (verified by manual test or SQL check).
+- [ ] Admin user (matched by `ADMIN_EMAIL` env) sees an "Admin" link in the top bar and `/dashboard/admin/signups` shows the total count and a list of recent signups.
+- [ ] Non-admin visiting `/dashboard/admin/signups` sees 404.
+- [ ] Existing landing page renders unchanged; design system tokens (sky/mint/sand) are reused on all new screens.
+- [ ] Every button on every page routes to a real, working destination (no dead buttons).
+- [ ] No fake testimonials, no invented customer logos, no fake metric counters in any copy.
+- [ ] PostHog (or analytics shim) fires `signup_completed`, `order_subpleted`, `onboarding_step_completed` events.
+- [ ] `middleware.ts` refreshes the Supabase session on every request.
+- [ ] Empty states are shown (not blank screens) on `/dashboard` orders and `/dashboard/admin/signups` for new accounts.
+- [ ] Mobile (375px): all new screens are usable; sticky CTA on `/dashboard/orders/new` is reachable.
