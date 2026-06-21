@@ -15,6 +15,7 @@ model User {
   image         String?
   passwordHash  String?
   role          String    @default("user")
+  onboarded     Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -58,21 +59,25 @@ model VerificationToken {
 }
 
 model Order {
-  id                String   @id @default(cuid())
-  orderNumber       String   @unique
-  userId            String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fileId            String?
-  fileName          String
-  material          String
-  quantity          Int      @default(1)
-  pricePerUnit      Float
-  totalPrice        Float
-  status            String   @default("pending")
-  notes             String?
-  shippingAddress   String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id             String   @id @default(cuid())
+  orderNumber    String   @unique
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileId         String?
+  fileName       String
+  material       String
+  fileMeta       String?  @default("{}")
+  quoteCents     Int      @default(0)
+  leadDaysMin    Int      @default(3)
+  leadDaysMax    Int      @default(5)
+  quantity       Int      @default(1)
+  pricePerUnit   Float    @default(0)
+  totalPrice     Float    @default(0)
+  status         String   @default("submitted")
+  notes          String?
+  shippingAddress String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
   estimatedDelivery DateTime?
 }
 

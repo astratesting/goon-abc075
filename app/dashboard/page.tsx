@@ -1,171 +1,230 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge, StatusBadge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { formatMaterialName } from "@/lib/materials";
+import { formatCurrency } from "@/lib/quote";
+import { track } from "@/lib/analytics";
+import { Box, Upload, Layers, ChevronRight, Users } from "lucide-react";
 
 interface Order {
   id: string;
   orderNumber: string;
   fileName: string;
   material: string;
-  quantity: number;
   totalPrice: number;
   status: string;
   createdAt: string;
-  estimatedDelivery: string | null;
 }
 
-const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  processing: "Processing",
-  printing: "Printing",
-  "quality-check": "Quality Check",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-};
-
-const statusColors: Record<string, string> = {
-  pending: "bg-gray-100 text-gray-700",
-  processing: "bg-purple-100 text-purple-700",
-  printing: "bg-blue-100 text-blue-700",
-  "quality-check": "bg-amber-100 text-amber-700",
-  shipped: "bg-sky-100 text-sky-700",
-  delivered: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-};
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[status] ?? statusColors.pending}`}>
-      {statusLabels[status] ?? status}
-    </span>
-  );
-}
-
-function StatCard({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-6">
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-          {icon}
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
-          <p className="text-sm text-gray-500">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
+interface Signup {
+  email: string;
+  createdAt: string;
 }
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [signups, setSignups] = useState<Signup[]>([]);
+  const [totalSignups, setTotalSignups] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
+
+  const firstName = session?.user?.name?.split(" ")[0] || session?.user?.email?.split("@")[0] || "there";
+  const isAdmin = session?.user?.role === "admin";
+  const memberSince = session?.user?.id ? new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "";
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
+    async function load() {
+      // Check onboarding
+      const profileRes = await fetch("/api/profile");
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        if (!profile.onboarded) {
+          router.push("/onboarding");
+          return;
+        }
+        setOnboarded(true);
+      }
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetch("/api/orders")
-        .then((r) => r.json())
-        .then((data) => {
-          if (Array.isArray(data)) setOrders(data);
-        })
-        .catch(() => {})
-        .finally(() => setLoadingOrders(false));
-    }
-  }, [status]);
+      // Load orders
+      const ordersRes = await fetch("/api/orders");
+      if (ordersRes.ok) {
+        const data = await ordersRes.json();
+        setOrders(data);
+      }
 
-  if (status === "loading") {
+      // Load admin data
+      if (isAdmin) {
+        const adminRes = await fetch("/api/admin");
+        if (adminRes.ok) {
+          const data = await adminRes.json();
+          setSignups(data.recentSignups || []);
+          setTotalSignups(data.totalUsers || 0);
+        }
+      }
+
+      setLoading(false);
+    }
+    load();
+  }, [isAdmin, router]);
+
+  if (loading || onboarded === null) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-brand border-t-transparent" />
+      <div className="flex items-center justify-center py-20">
+        <div className="h-6 w-6 rounded-full border-2 border-sky-brand border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  if (!session) return null;
-
-  const activeOrders = orders.filter((o) => !["delivered", "cancelled"].includes(o.status));
-  const totalSpent = orders.reduce((sum, o) => sum + o.totalPrice, 0);
-
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+    <div className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl font-bold text-gray-900">
-          Welcome back, {session.user.name?.split(" ")[0] ?? "there"}
-        </h1>
-        <p className="mt-1 text-gray-500">Manage your orders and uploads</p>
+        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {firstName}.</h1>
+        <p className="mt-1 font-serif italic text-gray-500">Ready to print?</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard label="Total Orders" value={String(orders.length)} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>} />
-        <StatCard label="Active Orders" value={String(activeOrders.length)} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>} />
-        <StatCard label="Total Spent" value={`$${totalSpent.toFixed(2)}`} icon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" /></svg>} />
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left column */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Orders card */}
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Your orders</h2>
+              <Link href="/dashboard/orders/new">
+                <Button size="sm">New order</Button>
+              </Link>
+            </div>
 
-      <div className="flex flex-wrap gap-3 mb-8">
-        <Link href="/upload" className="btn-primary text-sm px-6 py-2.5">
-          Upload New File
-        </Link>
-        <Link href="/quote" className="btn-secondary text-sm px-6 py-2.5">
-          Get Quote
-        </Link>
-      </div>
+            {orders.length === 0 ? (
+              <EmptyState
+                icon={Box}
+                title="No orders yet"
+                body="Upload a file to get your first quote."
+                cta={
+                  <Link href="/dashboard/orders/new">
+                    <Button>Start an order</Button>
+                  </Link>
+                }
+              />
+            ) : (
+              <div className="space-y-3">
+                {orders.map((order) => (
+                  <Link
+                    key={order.id}
+                    href={`/dashboard/orders/${order.id}`}
+                    className="flex items-center justify-between rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+                        <Box className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900">{order.orderNumber}</p>
+                        <p className="text-xs text-gray-500 truncate">{order.fileName}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="hidden sm:inline text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                        {formatMaterialName(order.material)}
+                      </span>
+                      <StatusBadge status={order.status} />
+                      <span className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(order.totalPrice)}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </Card>
 
-      <div className="rounded-2xl border border-gray-100 bg-white overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-serif text-lg font-semibold text-gray-900">Recent Orders</h2>
-          <Link href="/orders" className="text-sm text-sky-600 hover:text-sky-700 font-medium">View all</Link>
-        </div>
-        {loadingOrders ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-brand border-t-transparent" />
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 mb-3">No orders yet</p>
-            <Link href="/upload" className="text-sky-600 hover:text-sky-700 text-sm font-medium">
-              Upload your first file to get started
+          {/* Quick actions */}
+          <div className="grid grid-cols-2 gap-4">
+            <Link href="/dashboard/orders/new">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                    <Upload className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Upload a file</p>
+                    <p className="text-xs text-gray-500">Get a quote in seconds</p>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+            <Link href="/dashboard/materials">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-mint-brand/20 text-emerald-600">
+                    <Layers className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Browse materials</p>
+                    <p className="text-xs text-gray-500">FDM, SLA, SLS options</p>
+                  </div>
+                </div>
+              </Card>
             </Link>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-50">
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Order</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">File</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Material</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Qty</th>
-                  <th className="text-left px-6 py-3 font-medium text-gray-500">Status</th>
-                  <th className="text-right px-6 py-3 font-medium text-gray-500">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.slice(0, 5).map((order) => (
-                  <tr key={order.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
-                    <td className="px-6 py-4 font-medium text-gray-900">{order.orderNumber}</td>
-                    <td className="px-6 py-4 text-gray-600">{order.fileName}</td>
-                    <td className="px-6 py-4 text-gray-600">{order.material}</td>
-                    <td className="px-6 py-4 text-gray-600">{order.quantity}</td>
-                    <td className="px-6 py-4"><StatusBadge status={order.status} /></td>
-                    <td className="px-6 py-4 text-right font-medium text-gray-900">${order.totalPrice.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        </div>
+
+        {/* Right column */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Account card */}
+          <Card>
+            <h2 className="text-sm font-semibold text-gray-900 mb-3">Account</h2>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Email</span>
+                <span className="text-gray-900 truncate max-w-[180px]">{session?.user?.email}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Member since</span>
+                <span className="text-gray-900">{memberSince}</span>
+              </div>
+            </div>
+            <Link href="/dashboard/account" className="mt-4 inline-block text-sm text-sky-700 hover:underline">
+              Edit profile
+            </Link>
+          </Card>
+
+          {/* Admin analytics */}
+          {isAdmin && (
+            <Card>
+              <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Admin: Signup analytics
+              </h2>
+              <div className="mb-4">
+                <p className="text-3xl font-bold text-gray-900">{totalSignups}</p>
+                <p className="text-xs text-gray-500">Total signups</p>
+              </div>
+              {signups.length > 0 && (
+                <div className="space-y-2">
+                  {signups.slice(0, 5).map((s, i) => (
+                    <div key={i} className="flex justify-between text-xs">
+                      <span className="text-gray-600 truncate max-w-[140px]">{s.email}</span>
+                      <span className="text-gray-400">{new Date(s.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Link href="/dashboard/admin/signups" className="mt-3 inline-block text-xs text-sky-700 hover:underline">
+                View all
+              </Link>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
