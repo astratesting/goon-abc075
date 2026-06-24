@@ -9,13 +9,20 @@ export async function GET() {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const orders = await prisma.order.findMany({
-    include: { user: { select: { id: true, name: true, email: true } } },
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      _count: { select: { orders: true } },
+    },
     orderBy: { createdAt: "desc" },
   });
 
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, createdAt: true, _count: { select: { orders: true } } },
+  const orders = await prisma.order.findMany({
+    include: { user: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -23,8 +30,18 @@ export async function GET() {
     totalOrders: orders.length,
     totalUsers: users.length,
     totalRevenue: orders.reduce((sum, o) => sum + o.totalPrice, 0),
-    pendingOrders: orders.filter((o) => o.status === "pending").length,
+    pendingOrders: orders.filter((o) => o.status === "pending" || o.status === "submitted").length,
   };
 
-  return NextResponse.json({ orders, users, stats });
+  return NextResponse.json({
+    orders,
+    users,
+    stats,
+    totalUsers: users.length,
+    recentSignups: users.map((u) => ({
+      email: u.email,
+      createdAt: u.createdAt.toISOString(),
+      lastSignInAt: null,
+    })),
+  });
 }

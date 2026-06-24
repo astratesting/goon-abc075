@@ -5,22 +5,40 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const createOrderSchema = z.object({
-  fileId: z.string().optional(),
   fileName: z.string().min(1),
   material: z.string().min(1),
-  quantity: z.number().int().min(1),
-  pricePerUnit: z.number().positive(),
-  totalPrice: z.number().positive(),
-  notes: z.string().optional(),
-  shippingAddress: z.string().optional(),
+  fileMeta: z.string().optional(),
+  quoteCents: z.number().int().nonnegative(),
+  leadDaysMin: z.number().int().positive(),
+  leadDaysMax: z.number().int().positive(),
+  quantity: z.number().int().min(1).default(1),
+  pricePerUnit: z.number().nonnegative(),
+  totalPrice: z.number().nonnegative(),
 });
 
-function generateOrderNumber(): string {
-  const date = new Date();
-  const prefix = "ORD";
-  const datePart = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
-  const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `${prefix}-${datePart}-${rand}`;
+function generateOrderNumber(seq: number): string {
+  return `GO-${String(seq).padStart(6, "0")}`;
+}
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const orders = await prisma.order.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      orderNumber: true,
+      fileName: true,
+      material: true,
+      totalPrice: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+  return NextResponse.json(orders);
 }
 
 export async function POST(request: Request) {
@@ -33,14 +51,25 @@ export async function POST(request: Request) {
     const body = await request.json();
     const data = createOrderSchema.parse(body);
 
+    const count = await prisma.order.count();
+    const orderNumber = generateOrderNumber(count + 1);
+
     const estimatedDelivery = new Date();
-    estimatedDelivery.setDate(estimatedDelivery.getDate() + 3);
+    estimatedDelivery.setDate(estimatedDelivery.getDate() + data.leadDaysMax);
 
     const order = await prisma.order.create({
       data: {
-        orderNumber: generateOrderNumber(),
+        orderNumber,
         userId: session.user.id,
-        ...data,
+        fileName: data.fileName,
+        material: data.material,
+        fileMeta: data.fileMeta ?? "{}",
+        quoteCents: data.quoteCents,
+        leadDaysMin: data.leadDaysMin,
+        leadDaysMax: data.leadDaysMax,
+        quantity: data.quantity,
+        pricePerUnit: data.pricePerUnit,
+        totalPrice: data.totalPrice,
         estimatedDelivery,
       },
     });
@@ -56,18 +85,4 @@ export async function POST(request: Request) {
     const message = err instanceof Error ? err.message : "Order creation failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
-
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const orders = await prisma.order.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return NextResponse.json(orders);
 }
