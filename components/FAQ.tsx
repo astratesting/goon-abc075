@@ -30,7 +30,7 @@ export function FAQ() {
         <p className="text-sm font-semibold text-sky-600 uppercase tracking-wider mb-3">
           FAQ
         </p>
-        <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
+        <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl lg:text-5xl">
           Common questions
         </h2>
       </div>
@@ -40,34 +40,36 @@ export function FAQ() {
           <div key={i}>
             <button
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="flex w-full items-center justify-between py-5 text-left"
+              className="flex w-full items-center justify-between py-6 text-left group"
             >
-              <span className="text-base font-medium text-gray-900 pr-4">
+              <span className="text-base font-medium text-gray-900 pr-4 group-hover:text-sky-700 transition-colors">
                 {faq.q}
               </span>
-              <svg
-                className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${
-                  openIndex === i ? "rotate-180" : ""
-                }`}
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 transition-all duration-300 ${openIndex === i ? 'bg-sky-brand border-sky-brand text-white rotate-180' : 'bg-gray-50 text-gray-400 group-hover:border-sky-300 group-hover:text-sky-500'}`}>
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                   strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </span>
             </button>
-            {openIndex === i && (
-              <div className="pb-5 pr-12">
-                <p className="text-sm text-gray-500 leading-relaxed">
-                  {faq.a}
-                </p>
-              </div>
-            )}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                openIndex === i ? "max-h-40 pb-6 opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <p className="pr-12 text-sm text-gray-500 leading-relaxed">
+                {faq.a}
+              </p>
+            </div>
           </div>
         ))}
       </div>

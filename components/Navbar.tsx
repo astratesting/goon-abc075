@@ -19,10 +19,10 @@ export function Navbar() {
 
   const navLinks = (
     <>
-      <a href="#features" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
+      <a href="#features" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
         Features
       </a>
-      <a href="#faq" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
+      <a href="#faq" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
         FAQ
       </a>
     </>
@@ -30,20 +30,23 @@ export function Navbar() {
 
   const authLinks = session ? (
     <>
-      <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
+      <Link href="/dashboard" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
         Dashboard
       </Link>
-      <button onClick={handleSignOut} className="text-sm text-gray-500 hover:text-gray-900 transition-colors text-left">
+      <button onClick={handleSignOut} className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors text-left">
         Sign out
       </button>
     </>
   ) : (
     <a
       href="#waitlist"
-      className="btn-primary text-sm px-5 py-2"
+      className="group inline-flex items-center gap-2 rounded-full bg-sky-brand px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-sky-brand/20 transition-all duration-300 hover:bg-sky-500 hover:shadow-xl hover:-translate-y-0.5"
       onClick={() => setMobileOpen(false)}
     >
-      Join the Waitlist
+      Join Waitlist
+      <svg className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
     </a>
   );
 
@@ -52,7 +55,7 @@ export function Navbar() {
       <div className="section-container">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2.5 group">
             <div className="relative h-8 w-8">
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-sky-brand to-mint-brand opacity-80 group-hover:opacity-100 transition-opacity" />
               <div className="absolute inset-2 rounded-full bg-white" />
@@ -88,7 +91,7 @@ export function Navbar() {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-gray-100 py-4 space-y-3">
+          <div className="md:hidden border-t border-gray-100 py-4 space-y-3 animate-fade-in">
             {navLinks}
             <div className="h-px bg-gray-100" />
             {authLinks}

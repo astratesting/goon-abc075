@@ -1,331 +1,291 @@
-# Goon — Full Product Build Plan
+# Goon MVP Build Plan
 
 ## 1. PRODUCT
 
-Goon is an authenticated web app for hobbyist inventors and independent creators to upload imperfect CAD/STL files, get AI-assisted repair, request a print in a chosen material/technology, and track that order from queue → printing → shipped, all from a single dashboard. The core value is collapsing the Shapeways-era friction (file rejection, week-long lead times, MOQ barriers) into a "drop the file, get a part" flow with transparent per-part pricing and no minimums. The primary user is a 25–55 year-old technical hobbyist (per the ICP brief) who already has a `.stl`/`.step` file on their machine, is time-poor, and wants a fast, honest quote without an enterprise sales motion. The specific pain it solves is documented in the prior session notes: no major player combines consumer-friendly pricing, no MOQ, AI file repair, and same-day local fulfillment — Shapeways exited, Xometry/Hubs/Protolabs are B2B-only, Ponoko has 2-day lead times and a heavier flow.
+Goon is an on-demand 3D printing service for hobbyist inventors and small hardware startups who need fast, low-friction custom parts without minimum order quantities. The MVP extends the existing landing page into a working app where a maker signs up, uploads an STL/OBJ file, configures material/finish/color through a guided quote flow, submits the request, then tracks the order through a five-stage progress bar while an admin triages and updates status from a separate dashboard. The core value is collapsing the gap between "I have a CAD file" and "I have a physical part in my hand" — the research shows Shapeways' collapse left hobbyists stranded, Xometry/Protolabs are B2B-only with MOQs, and no major player combines AI file repair with same-day local fulfillment. This MVP delivers the upload → quote → track loop end-to-end so the founder can validate the workflow with real users before building the AI repair and printer-routing layers.
 
 ## 2. WHO IT'S FOR
 
-Primary ICP: independent hobbyist inventor (ages 25–55, technical, often has owned a personal FDM printer but outgrown its quality/speed), with a secondary segment of small startup founders validating physical prototypes. This shapes the product as follows:
+The ICP from research is independent inventors and hobbyist creators (25–55, technically inclined, predominantly male) plus small hardware startup founders validating concepts. They are time-poor, CAD-literate, frustrated by their own printer quality, and allergic to enterprise procurement flows. This shapes every product decision:
 
-- **Tone**: technical but not enterprise — "drag your STL here" beats "upload your CAD asset for review."
-- **No MOQ, no sales contact**: pricing is a per-part quote shown in the dashboard, not a "request a quote" form that emails a rep.
-- **Surface the AI file repair as a feature, not a service**: a checkbox plus a "Repair" button, with a clear before/after preview when possible.
-- **Time-poor default**: the dashboard opens on the action that matters most right now (the active order), not on a nav-heavy admin layout.
-- **Honest about what the network can/can't do**: tech selection shows what's actually available locally (FDM, SLA, SLS) with lead-time ranges, not a fake "all materials, all locations."
-
-The tone is Calm System — quiet, confident, instrumental — which is appropriate for a builder who wants the UI to disappear and the part to show up.
+- **No nested menus.** Dashboard opens on a single "Next step" card.
+- **No jargon walls.** Material names are PLA/ABS/Resin/Nylon with one-line plain-English descriptions, not datasheets.
+- **No MOQ copy, no enterprise pricing tables.** The quote form is one screen with three dropdowns.
+- **Tone is maker-to-maker.** Calm, direct, slightly nerdy. No marketing fluff.
+- **Mobile-friendly.** Many hobbyists upload from a phone after slicing on a laptop.
+- **Status page is the homepage after login.** Makers want to know "where's my part" — that's the first thing they see.
 
 ## 3. LOOK & FEEL
 
-### 3.1 Visual system (extends the existing landing page)
+### Visual system (extends existing Calm System)
 
-- **Vibe / positioning**: Calm System — a soft, daylight, instrument-panel feel. Cards float on a soft-white plane with hairline borders; nothing screams "SaaS." The Orbit motif (a ring with a small dot) is the only decorative mark; it's used for the empty-state of the order timeline and as a small spinner/progress ring.
-- **Color palette (CSS vars in `globals.css` — DO NOT redefine, REUSE):**
-  - `--sky-blue: #6DB5D2` → primary action, links, active state, focus ring
-  - `--mint: #A5D8C1` → success states ("Print ready", "Shipped"), checkmarks
-  - `--sand: #E8CDA0` → warning/queued states, AI repair highlight
-  - `--soft-white: #F5F8FA` → page background
-  - Ink: `#0F1B22` (text), mute: `#5A6A73` (secondary text), hairline: `#E3EAEE`
-- **Typography**: `Geist` (sans, body + UI), `Lora` (serif accent, used for the dashboard's "Today" greeting and section headings like "Active order" / "Order history"). Reuse the `next/font` setup from the landing.
-- **Spacing & layout**: 8px base scale (`p-2, p-4, p-6, p-8, p-12`). Container max-width 1120px on dashboard, 720px on the upload flow. Cards are 1px hairline border + 16px radius + `shadow-[0_1px_0_rgba(15,27,34,0.04)]`. No heavy shadows, no gradients.
-- **Iconography**: `lucide-react` only. Keep stroke width 1.5. The Orbit mark is a custom inline SVG (a 16px ring + 4px dot) — used as the favicon-style mark in the dashboard header and as the empty-state illustration.
-- **Imagery**: no stock photos. The dashboard is purely product UI; the only "image" is a 3D viewport placeholder (gray rounded box labeled "Preview") where a real STL thumbnail would go.
-- **Motion**: 150ms ease-out for hovers, 250ms ease-in-out for the order timeline progress, 400ms for the Orbit ring on the landing. Reduced-motion respected via `motion-safe:` Tailwind variants.
+- **Palette (from globals.css vars, unchanged):** sky `#6DB5D2`, mint `#A5D8C1`, sand `#E8CDA0`, soft white `#F5F8FA`, ink `#2C3E50`, plus a derived muted slate `#5A6B7A` for secondary text and a hairline `#D9E2EA` for borders.
+- **Typography:** Geist Sans for UI/body, Geist Mono for filenames/order IDs/material codes, Lora for the one or two marketing-style headings on auth pages. No new font loads.
+- **Spacing:** 4px base, generous vertical rhythm (24/32/48px section gaps). Cards use 24px padding, 16px border-radius, 1px hairline border in `#D9E2EA`, no drop shadows except a single soft `0 1px 2px rgba(44,62,80,0.04)` on hover.
+- **Iconography:** Lucide icons only (already in the repo's stack). Stroke 1.5, size 16/20/24.
+- **Imagery:** No stock photos. Empty states use simple line illustrations or just a single muted icon centered in a 96px circle with sky-blue tint.
+- **Motion:** 150ms ease-out on hover, 200ms on page transitions. Progress bar fills with a 400ms ease-in-out. Drag-over state pulses the dropzone border in mint.
+- **Buttons:** Primary = sky-blue fill, white text, 10px radius. Secondary = white fill, hairline border, ink text. Destructive = ink text on sand-tinted background. All buttons 40px tall, 14px horizontal padding.
 
-### 3.2 Screens (top-to-bottom)
+### Screen-by-screen layout
 
-**Screen A — `/login` and `/signup`**
-- Centered card (max-w 420px) on soft-white, with the Orbit mark + "Goon" wordmark at top.
-- Below: Lora heading ("Sign in" / "Create your account"), Geist subtitle.
-- Fields: email, password (with show/hide eye toggle, lucide `Eye` / `EyeOff`), plus a single primary button (`bg-sky-blue`, white text, full width).
-- "Continue" button is disabled until both fields are valid; enables with a 150ms fade.
-- Below the button: a one-line link ("Don't have an account? Sign up" / "Already on Goon? Sign in") and a one-line helper ("By continuing you agree to our terms.") — no fake legal copy, just neutral placeholder text.
-- On submit: button shows an inline Orbit spinner; on error, a sand-tinted banner with a single line of error text appears above the button (no toast, no alert).
+**`/login` and `/signup`** — Centered card (max-width 400px) on soft-white background. Logo wordmark "goon" in Lora 28px at top. Card has 32px padding, hairline border. Email field, password field (with show/hide toggle), primary submit button full-width. Below the button, a single line link: "New here? Create an account" or "Already have one? Sign in". No social buttons. No "forgot password" link in MVP (out of scope; password reset is a follow-up).
 
-**Screen B — `/onboarding` (first-login only, gated by `user.onboardedAt === null`)**
-- Single-column wizard, three steps, progress dots (sky-blue filled, hairline unfilled) at top.
-- Step 1: "What brings you to Goon?" — four radio cards (Hobbyist project, Prototype for a startup, Replacement part, Just exploring). Each card is a 1px hairline box that becomes `--sky-blue` border + light sky-blue tint when selected.
-- Step 2: "What's your home printer situation?" — three radio cards (Don't own one, Own an FDM, Own an FDM + resin/SLA). This tunes future material recommendations.
-- Step 3: "Pick your first material" — three cards (FDM PLA, SLA Resin, SLS Nylon) with one-line description + a tiny mint-tinted lead-time badge ("Same day", "1–2 days", "2–4 days"). "Skip for now" link below.
-- Bottom: "Back" (ghost) + "Continue" (primary). "Continue" fires PostHog `onboarding_step_completed` with `step` property, then advances. After step 3, sets `onboardedAt = now()` server-side, fires `onboarding_completed`, routes to `/dashboard`.
+**`/dashboard`** — Top bar: "goon" wordmark left, user email + "Sign out" right, hairline bottom border. Main area is a single column, max-width 720px, centered. Top: greeting "Hey, {firstName}" in Lora 24px. Below: a "Next step" card that adapts — if no active order, it shows "Upload a file to get started" with a primary button to `/dashboard/upload`. If an active order exists, it shows the order ID, current status pill, and a link to `/orders/[id]`. Below that: a two-column grid of action cards — "Upload file" (sky tint) and "Request a quote" (mint tint). Below: a "Recent orders" list (last 5) with order ID, material, status pill, date. Empty state: muted icon + "No orders yet."
 
-**Screen C — `/dashboard` (default home)**
-- Top bar (sticky, soft-white with hairline bottom border, 64px tall): Orbit mark + "Goon" left; right side shows the user's email (mute color), a chevron-down that opens a tiny popover with "Account", "Sign out" (no other settings yet).
-- Greeting block: Lora "Today" + Geist date (e.g., "Tuesday, June 23") + one-line status sentence (e.g., "No active orders. Upload a file to get started." or "Your PLA bracket is printing.").
-- **Active order card** (only if there's an order in `printing` or `queued` state): hairline card, 24px padding. Left: 80px "Preview" gray box. Middle: file name (Geist, medium), technology + material + color (mute), and an inline timeline (4 nodes: Queued → Printing → Quality check → Shipped) with the current node filled sky-blue, completed nodes mint, future nodes hairline. Right: an estimated-ready date and a "View details →" link to `/orders/[id]`.
-- **Quick upload card**: a 1px dashed hairline box, full-width, with a centered upload icon (lucide `UploadCloud`), primary text "Drop an STL, STEP, or OBJ here", mute "or click to browse", and a tiny mint badge "AI repair included" (sand-tinted badge if the file is over 50MB). Clicking opens a native file picker; drag-and-drop also works.
-- **"Recent orders" list**: max 5 rows. Each row is a 1px-bottom-bordered row: small preview thumb, file name, material chip (sky-blue outline), status chip (mint for done, sand for queued/printing, hairline for shipped), price, date. Empty state: Orbit ring + "No orders yet" + a primary "Upload your first file" button.
+**`/dashboard/upload`** — Page title "Upload your file" (Lora 24px), subtitle "STL or OBJ, up to 50 MB." Below: a large dropzone (full-width, 240px tall, dashed hairline border, mint on drag-over) with a centered upload icon, "Drag a file here or click to browse" text, and a small "Accepted: .stl, .obj" caption. Below the dropzone: a "Selected file" row that appears after selection, showing filename (mono), size, and a remove X. Below that: a primary "Continue to quote" button (disabled until file is selected). On submit: file uploads via `POST /api/upload`, returns file ID, redirects to `/dashboard/quote?file={id}`.
 
-**Screen D — `/orders/new` (the upload flow)**
-- Two-column on `lg`, stacked on mobile. Left column = file preview (gray "Preview" box, 320px square, with the file name + size below). Right column = configuration.
-- Configuration sections (vertical stack of cards, each hairline-bordered, 16px radius, 24px padding):
-  1. **File**: file name, size, and a sand-tinted "Run AI repair" toggle (default ON, with a one-line helper: "We auto-fix non-manifold edges, holes, and inverted normals."). A small "Repair preview" button appears after the file is analyzed; for the MVP this just flips a `repaired: true` flag on the order and logs to PostHog.
-  2. **Technology**: three segmented buttons (FDM / SLA / SLS) styled like a pill segmented control (selected = sky-blue background + white text). Each shows a one-line lead time ("Same day" / "1–2 days" / "2–4 days").
-  3. **Material & color**: dropdown (Geist, hairline border) for material (e.g., "PLA", "ABS", "PETG" for FDM; "Tough Resin", "Clear Resin" for SLA; "PA12 Nylon" for SLS) and a 5-swatch color row (sky-blue, mint, sand, ink black, soft-white) with the active swatch ringed sky-blue.
-  4. **Quantity**: `−` / number / `+` stepper, default 1, max 99.
-  5. **Shipping**: a single field "ZIP / postal code" with a one-line note: "We match you to the closest printer in our network." No address collection in MVP — the order stores zip only.
-- Sticky bottom bar (soft-white, hairline top): left side shows live price (Lora, 24px) + "Estimated total" mute label. Right side: "Place order" primary button, disabled until file + tech + zip are present. On click, POSTs to `/api/orders`, fires PostHog `order_created`, then routes to `/orders/[id]`.
+**`/dashboard/quote`** — Multi-step form rendered as a single page with a step indicator at top (1 Material → 2 Color → 3 Finish → 4 Review). Step indicator is four circles connected by a line, current step filled sky-blue, completed steps filled mint, future steps hairline. Each step shows one question prominently with large radio cards (full-width, 24px padding, selected state has sky-blue left border 3px and soft sky tint background). Material options: PLA (default, "Easy to print, biodegradable"), ABS ("Tough, heat-resistant"), Resin ("High detail, smooth surface"), Nylon ("Durable, flexible"). Color: 8 swatches in a 4×2 grid (White, Black, Gray, Sky Blue, Mint, Sand, Red, Yellow) — each is a 48px circle with a hairline border, selected gets a 2px sky ring. Finish: Standard ("As-printed"), Sandblasted ("Matte, smooth"), Painted ("Color-coated, +$X"). Review step shows a summary card with all selections, the uploaded filename, and a "Submit quote request" button. On submit: `POST /api/quotes`, returns order ID, redirects to `/orders/[id]`.
 
-**Screen E — `/orders/[id]` (order detail)**
-- Header: "Back to dashboard" link (with `←` arrow), then Lora "Order #GO-XXXX" + created-at date.
-- Timeline card (full width): the 4-node timeline, larger (each node 24px circle, label below). Current node label is sky-blue; completed nodes mint. Below the timeline, a one-line "Latest update" with timestamp.
-- Two-column below: left = file preview + filename + size + "Download repaired file" button (sandbox: links to a placeholder file in the repo's `public/placeholders/`). Right = order summary card: technology, material, color (small swatch), quantity, shipping zip, price, status.
-- Empty / non-owner state: if the order id doesn't belong to the signed-in user, render a 404 (not a 403 — don't leak existence).
+**`/orders/[id]`** — Public-readable by the order owner (checked server-side). Top: order ID in mono, date, status pill. Below: a horizontal progress bar with five labeled stages — Processing, Printing, Quality Check, Shipped, Delivered. Completed stages are filled mint, current stage is filled sky-blue with a subtle pulse, future stages are hairline. Below the bar: a vertical timeline of status updates (timestamp + note from admin). Below: order details card (material, color swatch, finish, filename). If status is "Shipped" or later, show a tracking note field if admin added one.
 
-**Screen F — `/orders` (full history)**
-- Simple table (or stacked rows on mobile). Columns: preview, file, technology, material, status, price, date. Each row clickable to `/orders/[id]`. Pagination: "Load more" button (20 per page) — no infinite scroll on MVP.
+**`/admin`** — Gated by `is_admin` flag on user. Top bar identical to dashboard but with an "Admin" badge in sand next to the email. Main area: a stats row (3 cards: Pending count, In Progress count, Shipped this week) — counts are real, not invented. Below: a table of all orders with columns: Order ID, Customer email, Material, Submitted, Status (dropdown to change), Actions (View). Status dropdown changes call `PATCH /api/orders/[id]` inline with optimistic UI. Empty state: "No orders yet." with a muted inbox icon.
 
-**Screen G — `/account`**
-- Three cards: "Profile" (email read-only, "Change password" form with current + new + confirm), "Sign out everywhere" (red hairline button, calls NextAuth `signOut` with `redirect: false` then routes to `/login`), "Delete account" (ghost button, opens a confirm dialog that explains this is irreversible in MVP and removes the row from `users`). No billing, no notifications, no integrations in MVP.
-
-**Screen H — Landing page (unchanged)**
-- Keep exactly as the web agent built it. The header's "Sign in" / "Get started" buttons now route to `/login` and `/signup` respectively. All existing `globals.css` vars, Tailwind colors, fonts, and the Orbit component are reused — no duplication.
+**`/admin/orders/[id]`** — Full order detail. Top: order ID, customer email, current status pill with a status-change dropdown. Below: a two-column layout — left column has order details (material, color, finish, filename with download link, submitted date), right column has an "Add status update" form (status select + optional note textarea + "Post update" button). Below: the full timeline of updates. Admin can also delete the order (destructive button, requires confirmation modal).
 
 ## 4. USER FLOWS
 
-### Flow 1 — Sign up
-1. User lands on `/` → clicks "Get started" → `/signup`.
-2. Enters email + password (min 8 chars, validated client + server).
-3. Server creates `users` row (Supabase), hashes password (bcrypt via NextAuth Credentials provider), creates NextAuth session, sets `onboardedAt = null`, fires PostHog `signup_completed` (server-side via `posthog-node`).
-4. Redirect to `/onboarding`.
-5. Onboarding completes → `onboardedAt = now()` → `onboarding_completed` event → redirect to `/dashboard`.
-6. States: loading (Orbit spinner in button), email-taken (sand banner: "An account with that email already exists. Sign in instead." with a link), validation error (inline under field), network error (sand banner above form).
+### Flow A — Sign up & first order
+1. User lands on `/`, clicks "Get started" → `/signup`.
+2. Submits email + password → server action creates user in DB, hashes password with bcrypt, creates NextAuth session, redirects to `/dashboard`.
+3. Dashboard shows empty state with "Upload a file" CTA.
+4. User clicks → `/dashboard/upload`, drags STL file, clicks Continue.
+5. File uploads to `/api/upload`, stored on disk under `uploads/{userId}/{uuid}.{ext}`, metadata saved to DB.
+6. Redirects to `/dashboard/quote?file={id}` with step 1 active.
+7. User picks PLA → Next → Black → Next → Standard → Next → Review → Submit.
+8. `POST /api/quotes` creates order with status "Processing", links to file, redirects to `/orders/[id]`.
+9. Status bar shows Processing filled mint, Printing current sky-blue.
 
-### Flow 2 — Sign in
-1. `/login` → email + password → NextAuth Credentials `authorize` checks bcrypt hash against Supabase `users.password_hash`.
-2. On success: NextAuth JWT session, redirect to `/dashboard` (or to `?callbackUrl` if present, validated to be a same-origin path).
-3. On failure: sand banner "Email or password is incorrect." — never reveal which one.
-4. "Sign out" from `/account` or dashboard popover: NextAuth `signOut()` → `/login`.
+### Flow B — Admin triages order
+1. Admin logs in → `/admin` (redirected from `/dashboard` if `is_admin`).
+2. Sees new order in table with "Processing" status.
+3. Changes status dropdown to "Printing" → `PATCH /api/orders/[id]` updates DB, posts timeline note.
+4. Clicks View → `/admin/orders/[id]`, adds note "Started print on Bambu X1C", clicks Post update.
+5. Later, changes status to "Quality Check", then "Shipped" with tracking note "USPS 9400...".
 
-### Flow 3 — Place an order
-1. From dashboard quick-upload card or `/orders/new`, user picks a file (drag-drop or click). Client validates extension (`.stl`, `.step`, `.obj`) and size (≤ 100MB MVP cap).
-2. File is read as `ArrayBuffer`, base64-encoded, POSTed to `/api/orders` (multipart alternative is fine but base64 keeps one code path). Server validates extension + size again, stores the raw bytes in a `files` row in Supabase Storage (path `orders/{userId}/{orderId}.{ext}`), creates an `orders` row with status `queued`.
-3. Server triggers (synchronously, but fire-and-forget logged) "AI repair" — for MVP this is a deterministic stub that sets `repaired: true` and logs the file hash to PostHog as `ai_repair_run` with `file_hash`, `size_bytes`. A real repair service can swap in later behind the same interface (`lib/ai/repair.ts`).
-4. Client redirects to `/orders/[id]`. PostHog `order_created` fires with `tech`, `material`, `price_cents`, `ai_repair: true`.
-5. States: file too big (sand banner "Max 100MB for MVP"), unsupported extension (sand banner), upload in progress (progress bar inside the dashed box, sky-blue fill), server error (sand banner with retry button), success → redirect.
+### Flow C — Customer checks status
+1. Customer logs in → `/dashboard` shows active order card with "In Quality Check" pill.
+2. Clicks order → `/orders/[id]` sees progress bar at stage 3, timeline shows two updates.
 
-### Flow 4 — Track an order
-1. From `/dashboard`, user sees the Active order card. The status is polled every 15s while the dashboard tab is visible (`document.visibilityState === 'visible'`) — `GET /api/orders?status=active` returns up to 5 active orders.
-2. Status transitions are driven by a server-side mock scheduler (`lib/orders/progress.ts`) that runs when an order is fetched: it advances `queued → printing → quality_check → shipped` based on `createdAt + leadTimeMinutes(tech)`. For MVP, this is a deterministic time-based simulator; the data model and API don't change when a real queue replaces it.
-3. On every status change, PostHog `order_status_changed` fires with `from` and `to`.
-4. Once `shipped`, the order disappears from "Active" and appears in history.
-
-### Flow 5 — View history
-1. `/orders` lists all of the user's orders, newest first. Click a row → `/orders/[id]`.
-
-### Flow 6 — Account management
-1. `/account` → change password (POST `/api/account/password`, validates current, hashes new, updates `users.password_hash`, signs out all sessions by bumping a `tokenVersion` field included in the JWT).
-2. Sign out everywhere: same as above with a confirm.
-3. Delete account: confirm dialog → POST `/api/account/delete` → cascades delete `orders`, `files` (storage paths), then `users` row, then signs out.
+### States
+- **Loading:** Skeleton rows on tables, spinner on buttons during submit.
+- **Error:** Inline form errors in `#C0392B` (a single derived red, not in palette but needed for errors) below fields. Toast for API failures.
+- **Empty:** Muted icon + one-line copy on every list.
+- **Unauthorized:** `/dashboard/*` and `/admin/*` redirect to `/login` if no session. `/admin/*` shows 403 page if logged in but not admin.
 
 ## 5. PAGES / ROUTES
 
-| Route | Purpose | Layout | Main UI elements |
+| Route | Purpose | Auth | Layout |
 |---|---|---|---|
-| `/` | Marketing landing (unchanged) | Existing | Hero, features, pricing band, footer; "Sign in" / "Get started" now link to `/login` and `/signup` |
-| `/login` | Sign in | Centered 420px card | Orbit mark, Lora heading, email + password, "Continue" button, link to `/signup`, error banner |
-| `/signup` | Create account | Centered 420px card | Same shape as login + password strength meter (4 dots, mint when ≥8 chars + 1 number) |
-| `/onboarding` | First-run wizard | 720px column, progress dots, step cards | 3 steps as described in Screen B |
-| `/dashboard` | Authenticated home | 1120px container, sticky top bar, vertical stack | Greeting, active order card (conditional), quick upload card, recent orders list |
-| `/orders/new` | Order creation flow | Two-column `lg`, stacked mobile, sticky bottom bar | File preview, config cards, price + Place order |
-| `/orders/[id]` | Order detail | 1120px, header + timeline + 2-col summary | Timeline, file preview, order summary, "Download repaired file" |
-| `/orders` | Full history | 1120px, table/rows | Columns: preview, file, tech, material, status, price, date; "Load more" |
-| `/account` | Account settings | 1120px, three stacked cards | Profile (email read-only + change password), sign out, delete account |
-| `/api/auth/[...nextauth]` | NextAuth handler | n/a | Credentials provider, JWT session, Supabase adapter |
-| `/api/orders` (GET) | List orders for current user (paginated, optional `?status=`) | n/a | Returns orders array |
-| `/api/orders` (POST) | Create order | n/a | multipart or JSON `{ fileBase64, tech, material, color, quantity, zip, aiRepair }` |
-| `/api/orders/[id]` (GET) | Fetch one order (ownership-checked) | n/a | Returns order |
-| `/api/account/password` (POST) | Change password | n/a | `{ current, next }` |
-| `/api/account/delete` (POST) | Delete account | n/a | Confirms with `{ confirm: "DELETE" }` |
-| `/api/analytics/identify` (POST) | Server-side PostHog identify alias | n/a | `{ distinctId, email }` — used to merge pre-signup anonymous events into the user |
+| `/` | Existing landing page | Public | Unchanged |
+| `/login` | Email/password sign in | Public | Centered card |
+| `/signup` | Email/password registration | Public | Centered card |
+| `/dashboard` | Customer home | Session | Top bar + single column |
+| `/dashboard/upload` | File upload | Session | Top bar + dropzone |
+| `/dashboard/quote` | Multi-step quote form | Session | Top bar + step indicator |
+| `/orders/[id]` | Customer order tracking | Session + owner check | Top bar + progress bar |
+| `/admin` | Admin order list | Session + `is_admin` | Top bar + stats + table |
+| `/admin/orders/[id]` | Admin order detail | Session + `is_admin` | Top bar + two-column |
+| `/api/auth/[...nextauth]` | NextAuth handler | — | Route handler |
+| `/api/upload` | File upload POST | Session | Route handler |
+| `/api/quotes` | Quote submission POST | Session | Route handler |
+| `/api/orders` | Order list GET, create POST | Session | Route handler |
+| `/api/orders/[id]` | Order GET/PATCH/DELETE | Session + owner or admin | Route handler |
 
 ## 6. CORE FEATURES
 
-1. **Email + password auth (NextAuth Credentials)**
-   - What it does: lets users sign up and sign in with email + password, no OAuth buttons, no dead social sign-in.
-   - How it works: NextAuth v15 with the Credentials provider; `authorize()` reads email, looks up the Supabase `users` row, bcrypt-compares the password; on success returns `{ id, email }`; JWT session strategy (no DB sessions) with a `tokenVersion` claim so password changes / deletes invalidate sessions. Adapter: `@next-auth/supabase-adapter` for the user/account tables (even though we only use Credentials, the adapter gives us the `users` schema and `signOut` cleanup).
+### F1 — Email/password auth (NextAuth v5 Credentials)
+- `app/(auth)/login/page.tsx` and `app/(auth)/signup/page.tsx` are server components that render client form components.
+- Signup server action (`app/(auth)/signup/actions.ts`) validates input, checks email uniqueness, hashes password with `bcryptjs` (10 rounds), inserts user row, calls NextAuth `signIn` programmatically.
+- Login uses NextAuth Credentials provider that looks up user by email, compares bcrypt hash, returns user object on success.
+- Session strategy: JWT (no DB session table needed for MVP).
+- `NEXTAUTH_SECRET` from env, `NEXTAUTH_URL` from env or inferred.
+- Middleware (`middleware.ts`) protects `/dashboard/*`, `/orders/*`, `/admin/*` — redirects to `/login` if no session, to `/` with 403 if `/admin/*` without `is_admin`.
 
-2. **AI file repair (toggle, stubbed in MVP)**
-   - What it does: when a user uploads a file with the toggle on, the order is flagged `aiRepair: true` and a server-side stub returns `{ repaired: true, issues_fixed: ['non_manifold', 'holes'] }` (deterministic based on file size hash). Logs to PostHog. Real implementation plugs into `lib/ai/repair.ts` later.
-   - How it works: same code path on the client; the only thing that changes is the body of `runRepair()`.
+### F2 — File upload
+- Client component with drag-and-drop using native HTML5 DnD events (no extra library).
+- Validates extension (`.stl`, `.obj`) and size (≤50MB) client-side and server-side.
+- `POST /api/upload` uses `formData()`, writes file to `uploads/{userId}/{uuid}.{ext}` via `fs/promises`, inserts `files` row with `{id, user_id, filename, size, mime, path, created_at}`.
+- Returns `{fileId}` to client.
 
-3. **Order upload with live config**
-   - What it does: file pick / drag-drop, then 4 config sections (tech, material+color, quantity, zip), live price calculation, sticky "Place order" button.
-   - How it works: client-side React state, no autosave; on submit, base64-encodes the file and POSTs to `/api/orders`. Price is computed client-side from a small `lib/pricing.ts` table (FDM: $15 base + $0.08/g estimated from file size; SLA: $40 base + $0.15/g; SLS: $50 base + $0.20/g) and re-validated server-side.
+### F3 — Quote request
+- Multi-step form is a single client component with internal `step` state (1–4). No URL routing between steps to keep it simple; back/next buttons in component.
+- On final submit, `POST /api/quotes` with `{fileId, material, color, finish}`.
+- Server validates all fields against allowed enums, creates `orders` row with status `"Processing"`, creates initial `order_updates` row with note "Order received".
+- Returns `{orderId}`.
 
-4. **Order status tracking with timeline**
-   - What it does: shows each order's current stage (queued → printing → quality_check → shipped) with an inline timeline and a detailed page.
-   - How it works: `lib/orders/progress.ts` is a pure function `(order, now) => orderWithStatus`. The server runs it on every read; transitions are persisted to the DB so polling is cheap. Dashboard polls `/api/orders?status=active` every 15s while visible.
+### F4 — Admin order management
+- `/admin` server component fetches all orders via `lib/db.ts` helpers, passes to client table component.
+- Status dropdown is a client component that calls `PATCH /api/orders/[id]` with `{status}` and on success updates local state.
+- `/admin/orders/[id]` has an "Add update" form that posts to `PATCH /api/orders/[id]` with `{status?, note?}` — if status provided, updates order and appends timeline entry; if note provided without status, just appends timeline entry.
 
-5. **Order history**
-   - What it does: paginated list of all of a user's past orders, newest first, with a "Load more" button.
-   - How it works: `GET /api/orders?cursor=<id>&limit=20`, cursor-based on `createdAt desc, id desc`.
+### F5 — Status tracking
+- `/orders/[id]` server component fetches order + updates, checks `order.user_id === session.user.id` (or admin), renders progress bar.
+- Progress bar is a client component that takes `currentStage` (1–5) and renders five labeled segments. Pure presentational, no state.
+- Timeline is a vertical list of `{timestamp, status, note}` from `order_updates` table.
 
-6. **Account settings**
-   - What it does: change password (with current-password re-auth), sign out, delete account.
-   - How it works: `/api/account/password` and `/api/account/delete` are POST endpoints that require a valid session, validate the current password (for password change), and bump `tokenVersion` to invalidate other sessions.
-
-7. **PostHog analytics**
-   - What it does: tracks `signup_completed`, `onboarding_step_completed` (with `step: 1|2|3`), `onboarding_completed`, `order_created` (with `tech`, `material`, `price_cents`, `ai_repair`), `order_status_changed` (with `from`, `to`), `ai_repair_run` (with `file_hash`, `size_bytes`), and `$pageview` (via `PostHogProvider` on the root layout).
-   - How it works: client uses `posthog-js` initialized in a client component mounted in `app/layout.tsx`; server uses `posthog-node` for events fired in API routes. `posthog-js` is gated to only load in the browser (no SSR). On signup, the server calls `posthog.alias(anonymousId, userId)` so pre-signup `$pageview`s are merged into the user. Env vars: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`, `POSTHOG_PROJECT_API_KEY` (server).
+### F6 — Public order API
+- `GET /api/orders` — returns orders for current user (or all if admin). Query params: `?status=`, `?limit=`.
+- `POST /api/orders` — admin-only, creates order manually (for phone orders).
+- `GET /api/orders/[id]` — owner or admin.
+- `PATCH /api/orders/[id]` — admin-only for status changes; owner can only cancel (status → "Cancelled", not in MVP enum but reserved).
+- `DELETE /api/orders/[id]` — admin-only.
 
 ## 7. DATA MODEL
 
-**`users` (Supabase, managed by `@next-auth/supabase-adapter` + our extra columns)**
-- `id` uuid pk
-- `email` text unique not null
-- `password_hash` text not null (bcrypt)
-- `name` text nullable
-- `image` text nullable
-- `email_verified` timestamptz nullable
-- `onboarded_at` timestamptz nullable (null = not onboarded)
-- `use_case` text nullable (`hobbyist` | `startup` | `replacement` | `exploring`)
-- `home_printer` text nullable (`none` | `fdm` | `fdm_resin`)
-- `preferred_material` text nullable
-- `token_version` int default 0 (bumped on password change / delete to invalidate JWTs)
-- `created_at` timestamptz default now()
+SQLite via `better-sqlite3` (synchronous, zero-config, perfect for MVP). DB file at `./data/goon.db`, auto-created on first run by `lib/db.ts`.
 
-**`orders`**
-- `id` uuid pk
-- `user_id` uuid fk → users.id (cascade delete)
-- `order_number` text unique (e.g., `GO-000123` — short, human-readable, generated server-side)
-- `file_id` uuid fk → files.id
-- `file_name` text not null
-- `file_size_bytes` bigint not null
-- `tech` text not null (`fdm` | `sla` | `sls`)
-- `material` text not null (e.g., `pla`, `abs`, `tough_resin`, `pa12`)
-- `color` text not null (hex, one of the 5 swatches)
-- `quantity` int not null default 1
-- `shipping_zip` text not null
-- `ai_repair` boolean not null default true
-- `repaired` boolean not null default false
-- `repaired_issues` text[] nullable (e.g., `['non_manifold', 'holes']`)
-- `price_cents` int not null
-- `status` text not null default `queued` (`queued` | `printing` | `quality_check` | `shipped` | `cancelled`)
-- `status_updated_at` timestamptz not null default now()
-- `created_at` timestamptz not null default now()
+**users**
+- `id` TEXT PRIMARY KEY (uuid)
+- `email` TEXT UNIQUE NOT NULL
+- `password_hash` TEXT NOT NULL
+- `name` TEXT (optional, from signup)
+- `is_admin` INTEGER NOT NULL DEFAULT 0 (boolean)
+- `created_at` TEXT NOT NULL (ISO 8601)
 
-**`files`**
-- `id` uuid pk
-- `user_id` uuid fk → users.id (cascade delete)
-- `storage_path` text not null (Supabase Storage path `orders/{userId}/{orderId}.{ext}`)
-- `mime_type` text not null
-- `size_bytes` bigint not null
-- `sha256` text not null (for dedup + repair stub)
-- `created_at` timestamptz default now()
+**files**
+- `id` TEXT PRIMARY KEY (uuid)
+- `user_id` TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+- `filename` TEXT NOT NULL (original name)
+- `stored_path` TEXT NOT NULL (relative to project root)
+- `size_bytes` INTEGER NOT NULL
+- `mime_type` TEXT NOT NULL
+- `created_at` TEXT NOT NULL
 
-**`order_events` (audit log, optional in MVP but cheap to add)**
-- `id` uuid pk
-- `order_id` uuid fk → orders.id
-- `from_status` text nullable
-- `to_status` text not null
-- `at` timestamptz default now()
+**orders**
+- `id` TEXT PRIMARY KEY (uuid)
+- `user_id` TEXT NOT NULL REFERENCES users(id)
+- `file_id` TEXT NOT NULL REFERENCES files(id)
+- `material` TEXT NOT NULL CHECK (material IN ('PLA','ABS','Resin','Nylon'))
+- `color` TEXT NOT NULL CHECK (color IN ('White','Black','Gray','Sky Blue','Mint','Sand','Red','Yellow'))
+- `finish` TEXT NOT NULL CHECK (finish IN ('Standard','Sandblasted','Painted'))
+- `status` TEXT NOT NULL DEFAULT 'Processing' CHECK (status IN ('Processing','Printing','Quality Check','Shipped','Delivered','Cancelled'))
+- `tracking_note` TEXT (optional, admin-set)
+- `created_at` TEXT NOT NULL
+- `updated_at` TEXT NOT NULL
 
-Relationships: `users 1—N orders`, `users 1—N files`, `orders 1—1 files` (one file per order in MVP), `orders 1—N order_events`. RLS: enable on all tables; policy `auth.uid() = user_id` for select/insert/update/delete on `orders` and `files`; `users` is `auth.uid() = id`.
+**order_updates**
+- `id` TEXT PRIMARY KEY (uuid)
+- `order_id` TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE
+- `status` TEXT NOT NULL (snapshot at time of update)
+- `note` TEXT (optional)
+- `created_at` TEXT NOT NULL
+- `created_by` TEXT NOT NULL REFERENCES users(id) (admin user id)
+
+Indexes: `orders(user_id)`, `orders(status)`, `order_updates(order_id, created_at DESC)`.
+
+`lib/types.ts` exports TypeScript interfaces matching these tables plus enums for `Material`, `Color`, `Finish`, `OrderStatus`, and a `OrderWithDetails` joined type.
 
 ## 8. AUTH
 
-NextAuth v15 with the **Credentials provider** + **JWT session strategy** + **Supabase adapter** for the user table schema. No OAuth, no social buttons, no Clerk. The Credentials `authorize()` function:
+NextAuth v5 (beta) with Credentials provider only. No social buttons. No Clerk.
 
-1. Receives `{ email, password }` from the client form.
-2. Queries Supabase `users` by `email` (lowercased).
-3. bcrypt-compares `password` against `users.password_hash`. `bcrypt.compare` rounds default to 10.
-4. Returns `{ id: user.id, email: user.email }` on success, `null` on failure.
-5. JWT callback adds `tokenVersion` from the user row to the token; session callback exposes it.
-6. Middleware (`middleware.ts`) protects all routes under `/dashboard`, `/orders`, `/account`, and `/onboarding` (only when `onboardedAt !== null` should the user be on `/dashboard`; gate the inverse). Unauthenticated requests get redirected to `/login?callbackUrl=<original>`. `callbackUrl` is validated to be a same-origin path starting with `/` to prevent open-redirects.
-
-Password hashing uses `bcryptjs` (no native build needed for Vercel). Sign-up is a separate API route `POST /api/auth/signup` that creates the user row, hashes the password, then returns success; the client then calls NextAuth's `signIn('credentials', { email, password, redirect: false })` to mint the session.
-
-Env vars required: `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (auto on Vercel), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server-only, for the adapter and the storage uploads), `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`, `POSTHOG_PROJECT_API_KEY`.
+- `auth.ts` at project root exports `auth`, `signIn`, `signOut`, `handlers` from `NextAuth({...})`.
+- Credentials provider `authorize` function: looks up user by email via `lib/db.ts`, compares password with `bcjs.compare`, returns `{id, email, name, isAdmin}` on success, `null` on failure.
+- JWT callback adds `isAdmin` to token, session callback exposes it as `session.user.isAdmin`.
+- `middleware.ts` uses `auth` from `auth.ts` to protect routes.
+- Env vars required: `NEXTAUTH_SECRET` (generated random string), `NEXTAUTH_URL` (e.g. `http://localhost:3000`).
+- `.env.example` documents both. App boots and works with just these two set.
 
 ## 9. FILES
 
 ```
-FILES: [
-  "frontend/app/layout.tsx",
-  "frontend/app/page.tsx",
-  "frontend/app/globals.css",
-  "frontend/app/(auth)/login/page.tsx",
-  "frontend/app/(auth)/signup/page.tsx",
-  "frontend/app/(auth)/layout.tsx",
-  "frontend/app/(auth)/actions.ts",
-  "frontend/app/onboarding/page.tsx",
-  "frontend/app/onboarding/actions.ts",
-  "frontend/app/dashboard/page.tsx",
-  "frontend/app/dashboard/ActiveOrderCard.tsx",
-  "frontend/app/dashboard/QuickUploadCard.tsx",
-  "frontend/app/dashboard/RecentOrdersList.tsx",
-  "frontend/app/dashboard/DashboardPoller.tsx",
-  "frontend/app/orders/new/page.tsx",
-  "frontend/app/orders/new/UploadFlow.tsx",
-  "frontend/app/orders/new/ConfigCard.tsx",
-  "frontend/app/orders/[id]/page.tsx",
-  "frontend/app/orders/[id]/OrderTimeline.tsx",
-  "frontend/app/orders/page.tsx",
-  "frontend/app/orders/OrdersTable.tsx",
-  "frontend/app/account/page.tsx",
-  "frontend/app/account/ChangePasswordForm.tsx",
-  "frontend/app/api/auth/[...nextauth]/route.ts",
-  "frontend/app/api/auth/signup/route.ts",
-  "frontend/app/api/orders/route.ts",
-  "frontend/app/api/orders/[id]/route.ts",
-  "frontend/app/api/account/password/route.ts",
-  "frontend/app/api/account/delete/route.ts",
-  "frontend/app/api/analytics/identify/route.ts",
-  "frontend/middleware.ts",
-  "frontend/lib/supabase/server.ts",
-  "frontend/lib/supabase/browser.ts",
-  "frontend/lib/supabase/storage.ts",
-  "frontend/lib/auth/options.ts",
-  "frontend/lib/auth/password.ts",
-  "frontend/lib/orders/progress.ts",
-  "frontend/lib/orders/status.ts",
-  "frontend/lib/pricing.ts",
-  "frontend/lib/ai/repair.ts",
-  "frontend/lib/posthog/server.ts",
-  "frontend/lib/posthog/client.tsx",
-  "frontend/lib/validation/orders.ts",
-  "frontend/lib/validation/auth.ts",
-  "frontend/components/Orbit.tsx",
-  "frontend/components/Button.tsx",
-  "frontend/components/Card.tsx",
-  "frontend/components/Field.tsx",
-  "frontend/components/StatusChip.tsx",
-  "frontend/components/Timeline.tsx",
-  "frontend/components/PostHogProvider.tsx",
-  "frontend/components/Header.tsx",
-  "frontend/supabase/migrations/0001_init.sql",
-  "frontend/supabase/migrations/0002_rls.sql",
-  "frontend/.env.example",
-  "frontend/README.md"
-]
+app/
+  (auth)/
+    login/
+      page.tsx
+      login-form.tsx
+    signup/
+      page.tsx
+      signup-form.tsx
+      actions.ts
+  dashboard/
+    layout.tsx
+    page.tsx
+    upload/
+      page.tsx
+      upload-zone.tsx
+    quote/
+      page.tsx
+      quote-form.tsx
+  orders/
+    [id]/
+      page.tsx
+      progress-bar.tsx
+      timeline.tsx
+  admin/
+    layout.tsx
+    page.tsx
+    orders-table.tsx
+    orders/
+      [id]/
+        page.tsx
+        status-editor.tsx
+        add-update-form.tsx
+  api/
+    auth/
+      [...nextauth]/
+        route.ts
+    upload/
+      route.ts
+    quotes/
+      route.ts
+    orders/
+      route.ts
+      [id]/
+        route.ts
+  layout.tsx (unchanged)
+  page.tsx (unchanged)
+  globals.css (unchanged)
+auth.ts
+middleware.ts
+lib/
+  db.ts
+  types.ts
+  auth-helpers.ts
+  validators.ts
+components/
+  ui/
+    button.tsx
+    input.tsx
+    card.tsx
+    pill.tsx
+    dropzone.tsx
+    radio-card.tsx
+    swatch-picker.tsx
+    step-indicator.tsx
+    toast.tsx
+  layout/
+    top-bar.tsx
+data/
+  .gitkeep
+uploads/
+  .gitkeep
+.env.example
+package.json (add: next-auth@beta, bcryptjs, better-sqlite3, uuid, @types/bcryptjs, @types/better-sqlite3, @types/uuid)
 ```
 
 ## 10. ACCEPTANCE
 
-- [ ] `npm run dev` in `frontend/` starts cleanly; `npm run build` succeeds with zero TypeScript errors.
-- [ ] Landing page (`/`) renders identically to the existing build; "Sign in" and "Get started" link to `/login` and `/signup`.
-- [ ] Sign up with a new email creates a Supabase `users` row, hashes the password, and signs the user in.
-- [ ] Sign in with the same email + password works; wrong password shows the neutral error banner.
-- [ ] Sign out from the dashboard popover and from `/account` both end the session and route to `/login`.
-- [ ] First-time sign-up lands on `/onboarding`; completing the 3 steps sets `onboardedAt` and routes to `/dashboard`.
-- [ ] Returning users go straight to `/dashboard`; `/onboarding` redirects to `/dashboard` if already onboarded.
-- [ ] Unauthenticated visits to `/dashboard`, `/orders`, `/orders/new`, `/orders/[id]`, `/account` redirect to `/login?callbackUrl=...` and bounce back after sign-in.
-- [ ] Upload flow: drag-drop or click selects a file; unsupported extension and >100MB are rejected client-side with a sand banner.
-- [ ] "Place order" creates an `orders` row, uploads the file to Supabase Storage, computes price, and routes to `/orders/[id]`.
-- [ ] Order detail shows the 4-node timeline; the status advances over time per `lib/orders/progress.ts` and persists to the DB.
-- [ ] Dashboard active-order card reflects the current status within 15s of a change (polling).
-- [ ] `/orders` lists all of the user's orders, paginated 20 per page with a working "Load more" button.
-- [ ] `/orders/[id]` for an order not owned by the current user renders a 404 (no existence leak).
-- [ ] Change password on `/account` works and invalidates other sessions (signing in again on another tab signs the other out).
-- [ ] Delete account removes the user's orders, files (storage paths), and the user row; user is signed out.
-- [ ] PostHog: `$pageview` fires on every route change; `signup_completed`, `onboarding_step_completed` (×3), `onboarding_completed`, `order_created`, `ai_repair_run`, `order_status_changed` all appear in the PostHog project.
-- [ ] PostHog `alias()` is called server-side on signup so anonymous pre-signup events are merged into the user.
-- [ ] All `globals.css` vars (`--sky-blue`, `--mint`, `--sand`, `--soft-white`) are reused; no new hex values introduced in Tailwind classes.
-- [ ] `Orbit` component is used consistently (header mark, login mark, empty-state illustration, button spinner).
-- [ ] No social sign-in buttons (no Google, no GitHub) anywhere in the UI.
-- [ ] No fake testimonials, customer counts, ratings, or press logos on the landing or dashboard.
-- [ ] `README.md` documents required env vars and the Supabase migration steps.
-- [ ] `supabase/migrations/0001_init.sql` + `0002_rls.sql` create all tables and enable RLS with the policies above.
-- [ ] Deployed to Vercel (or equivalent) with env vars set; live URL returns 200 on `/` and a redirect to `/login` on `/dashboard`.
+- [ ] Landing page (`/`) renders identically to before — no visual or copy changes.
+- [ ] `/signup` creates a user, hashes password, signs in, redirects to `/dashboard`.
+- [ ] `/login` authenticates existing user, redirects to `/dashboard`.
+- [ ] `/dashboard` requires session; redirects to `/login` when logged out.
+- [ ] `/dashboard/upload` accepts STL/OBJ via drag-drop and click, rejects other extensions and files >50MB with inline error.
+- [ ] Uploaded file is written to `uploads/{userId}/` and a `files` row exists in SQLite.
+- [ ] `/dashboard/quote` shows 4-step form, validates selections, submits to `/api/quotes`, creates order with status "Processing".
+- [ ] `/orders/[id]` shows progress bar with correct stage highlighted, timeline of updates, order details.
+- [ ] `/orders/[id]` returns 404 (or redirects) when accessed by a non-owner non-admin.
+- [ ] `/admin` requires `is_admin`; non-admins get 403.
+- [ ] `/admin` lists all orders, status dropdown changes persist via `PATCH /api/orders/[id]`.
+- [ ] `/admin/orders/[id]` allows adding status updates with optional notes; updates appear in customer timeline.
+- [ ] `GET /api/orders` returns caller's orders (or all if admin); `POST` is admin-only.
+- [ ] `GET/PATCH/DELETE /api/orders/[id]` enforce owner-or-admin.
+- [ ] SQLite DB auto-creates on first run; schema migrations run idempotently.
+- [ ] All forms show loading states during submit and inline errors on failure.
+- [ ] No social login buttons anywhere. No Clerk. No fake testimonials, logos, or user counts.
+- [ ] `NEXTAUTH_SECRET` and `NEXTAUTH_URL` are the only required env vars to boot.
+- [ ] `npm run build` succeeds with no type errors.
+- [ ] `npm run dev` boots and the full signup → upload → quote → track → admin-update flow works end-to-end.
+
+FILES: ["app/(auth)/login/page.tsx", "app/(auth)/login/login-form.tsx", "app/(auth)/signup/page.tsx", "app/(auth)/signup/signup-form.tsx", "app/(auth)/signup/actions.ts", "app/dashboard/layout.tsx", "app/dashboard/page.tsx", "app/dashboard/upload/page.tsx", "app/dashboard/upload/upload-zone.tsx", "app/dashboard/quote/page.tsx", "app/dashboard/quote/quote-form.tsx", "app/orders/[id]/page.tsx", "app/orders/[id]/progress-bar.tsx", "app/orders/[id]/timeline.tsx", "app/admin/layout.tsx", "app/admin/page.tsx", "app/admin/orders-table.tsx", "app/admin/orders/[id]/page.tsx", "app/admin/orders/[id]/status-editor.tsx", "app/admin/orders/[id]/add-update-form.tsx", "app/api/auth/[...nextauth]/route.ts", "app/api/upload/route.ts", "app/api/quotes/route.ts", "app/api/orders/route.ts", "app/api/orders/[id]/route.ts", "auth.ts", "middleware.ts", "lib/db.ts", "lib/types.ts", "lib/auth-helpers.ts", "lib/validators.ts", "components/ui/button.tsx", "components/ui/input.tsx", "components/ui/card.tsx", "components/ui/pill.tsx", "components/ui/dropzone.tsx", "components/ui/radio-card.tsx", "components/ui/swatch-picker.tsx", "components/ui/step-indicator.tsx", "components/ui/toast.tsx", "components/layout/top-bar.tsx", ".env.example"]
