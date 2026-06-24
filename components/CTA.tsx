@@ -30,13 +30,13 @@ export function CTA() {
       <div className="section-container text-center">
         <div className="mx-auto max-w-2xl">
           <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl text-balance">
-            From CAD file to real part,{" "}
-            <span className="font-serif italic text-sky-700">shipped same day.</span>
+            Get early access to{" "}
+            <span className="font-serif italic text-sky-700">Goon</span>
           </h2>
           <p className="mt-4 text-gray-500 leading-relaxed">
-            Get early access to Goon. Upload any 3D file — even broken meshes —
-            and our AI will auto-repair, optimize, print, and ship your part
-            the same day. No minimums, no sales calls.
+            Join the waitlist and be first to try AI-powered 3D printing.
+            Upload any file — even broken meshes — and get a printed part
+            shipped the same day.
           </p>
 
           {submitted ? (

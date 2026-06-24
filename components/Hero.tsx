@@ -32,17 +32,17 @@ export function Hero() {
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-sky-brand/10 px-4 py-1.5 text-sm text-sky-700 mb-6">
             <span className="h-2 w-2 rounded-full bg-sky-brand animate-pulse" />
-            Now accepting early orders
+            Now accepting early access
           </div>
 
           <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-            From CAD file to{" "}
-            <span className="gradient-text">real part</span> in minutes
+            3D parts with{" "}
+            <span className="gradient-text">AI file repair</span>,{" "}
+            <span className="gradient-text">shipped same day</span>
           </h1>
 
           <p className="mt-6 text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-            Upload your 3D model, pick a material, get an instant price.
-            No minimum orders. No sales calls. Just fast, affordable 3D printing.
+            Upload any CAD file — even broken meshes. Our AI auto-repairs, optimizes, and prints your part. No minimums, no sales calls.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
@@ -55,12 +55,12 @@ export function Hero() {
               </button>
             ) : (
               <>
-                <button
-                  onClick={() => router.push("/signup")}
+                <a
+                  href="#waitlist"
                   className="btn-primary text-base px-8 py-3"
                 >
                   Get Early Access
-                </button>
+                </a>
                 <button
                   onClick={handleDemo}
                   disabled={demoLoading}
@@ -70,6 +70,28 @@ export function Hero() {
                 </button>
               </>
             )}
+          </div>
+
+          {/* Trust signal badges */}
+          <div className="mt-8 flex items-center justify-center gap-6 text-sm text-gray-500">
+            <span className="flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-mint-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              No Minimums
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-mint-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              AI Quality Check
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg className="h-4 w-4 text-mint-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Same-Day Shipping
+            </span>
           </div>
 
           {/* Decorative mockup */}

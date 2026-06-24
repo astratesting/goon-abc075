@@ -16,6 +16,7 @@ model User {
   passwordHash  String?
   role          String    @default("user")
   onboarded     Boolean   @default(false)
+  tokenVersion  Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
@@ -59,38 +60,43 @@ model VerificationToken {
 }
 
 model Order {
-  id             String   @id @default(cuid())
-  orderNumber    String   @unique
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fileId         String?
-  fileName       String
-  material       String
-  fileMeta       String?  @default("{}")
-  quoteCents     Int      @default(0)
-  leadDaysMin    Int      @default(3)
-  leadDaysMax    Int      @default(5)
-  quantity       Int      @default(1)
-  pricePerUnit   Float    @default(0)
-  totalPrice     Float    @default(0)
-  status         String   @default("submitted")
-  notes          String?
-  shippingAddress String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String    @id @default(cuid())
+  orderNumber      String    @unique
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileId           String?
+  fileName         String
+  material         String
+  fileMeta         String?   @default("{}")
+  quoteCents       Int       @default(0)
+  leadDaysMin      Int       @default(1)
+  leadDaysMax      Int       @default(5)
+  quantity         Int       @default(1)
+  pricePerUnit     Float     @default(0)
+  totalPrice       Float     @default(0)
+  tech             String    @default("fdm")
+  color            String    @default("#6DB5D2")
+  shippingZip      String    @default("")
+  aiRepair         Boolean   @default(true)
+  repaired         Boolean   @default(false)
+  repairedIssues   String?   @default("")
+  status           String    @default("queued")
+  statusUpdatedAt  DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
   estimatedDelivery DateTime?
 }
 
 model UploadedFile {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fileName   String
-  filePath   String
-  fileSize   Int
-  mimeType   String
-  format     String
-  volume     Float?
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName  String
+  filePath  String
+  fileSize  Int
+  mimeType  String
+  format    String?
+  volume    Float?
   dimensions String?
-  createdAt  DateTime @default(now())
+  createdAt DateTime @default(now())
 }
