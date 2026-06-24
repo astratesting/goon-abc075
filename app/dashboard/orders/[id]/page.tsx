@@ -161,7 +161,7 @@ export default function OrderDetailPage() {
             };
             if (s === order.status) return null;
             // Only allow forward transitions
-            const order = ["submitted", "in_review", "printing", "shipped", "delivered"];
+            const allStatuses = ["submitted", "in_review", "printing", "shipped", "delivered"];
             // We just show all for simplicity
             return (
               <Button
