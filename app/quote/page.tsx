@@ -24,9 +24,9 @@ function QuoteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const initialVolume = parseFloat(searchParams.get("volume") ?? "10");
-  const fileId = searchParams.get("fileId");
-  const fileName = searchParams.get("fileName") ?? "";
+  const initialVolume = parseFloat(searchParams?.get("volume") ?? "10");
+  const fileId = searchParams?.get("fileId") ?? undefined;
+  const fileName = searchParams?.get("fileName") ?? "";
 
   const [volume, setVolume] = useState(initialVolume);
   const [material, setMaterial] = useState("PLA+");

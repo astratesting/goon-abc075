@@ -32,6 +32,7 @@ export default function OrderDetailPage() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
+    if (!params?.id) return;
     fetch(`/api/orders/${params.id}`)
       .then((r) => r.json())
       .then((data) => {
@@ -46,7 +47,7 @@ export default function OrderDetailPage() {
         setLoading(false);
         router.push("/dashboard/orders");
       });
-  }, [params.id, router]);
+  }, [params?.id, router]);
 
   async function updateStatus(newStatus: string) {
     if (!order) return;

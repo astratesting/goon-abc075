@@ -1,176 +1,157 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { StatusChip } from "@/components/StatusChip";
+import { OrbitEmptyState } from "@/components/Orbit";
+import { File } from "lucide-react";
 
-interface Order {
+interface OrderRow {
   id: string;
   orderNumber: string;
   fileName: string;
+  tech: string;
   material: string;
-  quantity: number;
-  pricePerUnit: number;
-  totalPrice: number;
   status: string;
+  totalPrice: number;
   createdAt: string;
-  estimatedDelivery: string | null;
 }
 
-const statusLabels: Record<string, string> = {
-  pending: "Pending",
-  processing: "Processing",
-  printing: "Printing",
-  "quality-check": "Quality Check",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-};
-
-const statusColors: Record<string, string> = {
-  pending: "bg-gray-100 text-gray-700",
-  processing: "bg-purple-100 text-purple-700",
-  printing: "bg-blue-100 text-blue-700",
-  "quality-check": "bg-amber-100 text-amber-700",
-  shipped: "bg-sky-100 text-sky-700",
-  delivered: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-};
-
-const statusSteps = ["pending", "processing", "printing", "quality-check", "shipped", "delivered"];
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColors[status] ?? statusColors.pending}`}>
-      {statusLabels[status] ?? status}
-    </span>
-  );
+function formatPrice(cents: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents);
 }
 
-function OrderTimeline({ status }: { status: string }) {
-  const currentIdx = statusSteps.indexOf(status);
-  if (currentIdx < 0) return null;
-
-  return (
-    <div className="flex items-center gap-1 mt-3">
-      {statusSteps.map((step, i) => (
-        <div key={step} className="flex items-center">
-          <div className={`h-2 w-2 rounded-full ${i <= currentIdx ? "bg-sky-brand" : "bg-gray-200"}`} />
-          {i < statusSteps.length - 1 && (
-            <div className={`h-0.5 w-6 ${i < currentIdx ? "bg-sky-brand" : "bg-gray-200"}`} />
-          )}
-        </div>
-      ))}
-    </div>
-  );
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 export default function OrdersPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const fetchOrders = useCallback(async (cursor?: string) => {
+    const url = cursor ? `/api/orders?cursor=${cursor}&limit=20` : "/api/orders?limit=20";
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (cursor) {
+          setOrders((prev) => [...prev, ...(data.orders || [])]);
+        } else {
+          setOrders(data.orders || []);
+        }
+        setHasMore(data.hasMore);
+        setNextCursor(data.nextCursor);
+      }
+    } catch {
+      // silent
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/auth/signin");
-    }
-  }, [status, router]);
+    fetchOrders();
+  }, [fetchOrders]);
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetch("/api/orders")
-        .then((r) => r.json())
-        .then((data) => {
-          if (Array.isArray(data)) setOrders(data);
-        })
-        .catch(() => {})
-        .finally(() => setLoading(false));
-    }
-  }, [status]);
+  function loadMore() {
+    if (!nextCursor) return;
+    setLoadingMore(true);
+    fetchOrders(nextCursor);
+  }
 
-  if (status === "loading") {
+  if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-brand border-t-transparent" />
+      <div className="max-w-[1120px] mx-auto px-4 py-8">
+        <h1 className="font-serif text-2xl font-bold text-gray-900 mb-6">Order history</h1>
+        <div className="animate-pulse space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 bg-gray-100 rounded-lg" />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (!session) return null;
+  if (orders.length === 0) {
+    return (
+      <div className="max-w-[1120px] mx-auto px-4 py-8">
+        <h1 className="font-serif text-2xl font-bold text-gray-900 mb-6">Order history</h1>
+        <Card className="p-8">
+          <div className="text-center">
+            <OrbitEmptyState className="mx-auto mb-4" />
+            <p className="text-sm font-medium text-gray-900">No orders yet</p>
+            <p className="text-xs text-gray-500 mt-1">Upload a file to get started.</p>
+            <div className="mt-4">
+              <Link href="/orders/new">
+                <Button>Upload your first file</Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10 lg:px-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <Link href="/dashboard" className="text-sm text-sky-600 hover:text-sky-700 mb-2 inline-block">
-            &larr; Back to Dashboard
-          </Link>
-          <h1 className="font-serif text-3xl font-bold text-gray-900">My Orders</h1>
-          <p className="mt-1 text-gray-500">Track and manage your 3D print orders</p>
-        </div>
-        <Link href="/upload" className="btn-primary text-sm px-5 py-2.5">
-          New Order
+    <div className="max-w-[1120px] mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-serif text-2xl font-bold text-gray-900">Order history</h1>
+        <Link href="/orders/new" className="text-sm font-medium text-sky-brand hover:underline">
+          New order &rarr;
         </Link>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-brand border-t-transparent" />
+      <Card className="overflow-hidden">
+        {/* Table header - desktop */}
+        <div className="hidden md:grid md:grid-cols-12 gap-4 px-4 py-3 border-b border-gray-100 text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <div className="col-span-1"></div>
+          <div className="col-span-3">File</div>
+          <div className="col-span-2">Tech</div>
+          <div className="col-span-2">Material</div>
+          <div className="col-span-1">Status</div>
+          <div className="col-span-1 text-right">Price</div>
+          <div className="col-span-2 text-right">Date</div>
         </div>
-      ) : orders.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-16 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-50">
-            <svg className="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </div>
-          <h3 className="font-serif text-lg font-semibold text-gray-900 mb-1">No orders yet</h3>
-          <p className="text-gray-400 text-sm mb-4">Upload a 3D file to place your first order</p>
-          <Link href="/upload" className="text-sky-600 hover:text-sky-700 text-sm font-medium">
-            Get started &rarr;
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
+
+        {/* Rows */}
+        <div className="divide-y divide-gray-100">
           {orders.map((order) => (
-            <div key={order.id} className="rounded-2xl border border-gray-100 bg-white p-6">
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <h3 className="font-medium text-gray-900">{order.orderNumber}</h3>
-                    <StatusBadge status={order.status} />
-                  </div>
-                  <p className="text-sm text-gray-500">{order.fileName}</p>
-                </div>
-                <p className="text-xl font-bold text-gray-900">${order.totalPrice.toFixed(2)}</p>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm mb-2">
-                <div>
-                  <p className="text-gray-400">Material</p>
-                  <p className="font-medium text-gray-700">{order.material}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Quantity</p>
-                  <p className="font-medium text-gray-700">{order.quantity}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Ordered</p>
-                  <p className="font-medium text-gray-700">{new Date(order.createdAt).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Est. Delivery</p>
-                  <p className="font-medium text-gray-700">
-                    {order.estimatedDelivery ? new Date(order.estimatedDelivery).toLocaleDateString() : "—"}
-                  </p>
+            <Link
+              key={order.id}
+              href={`/orders/${order.id}`}
+              className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 items-center px-4 py-3 hover:bg-gray-50/50 transition-colors"
+            >
+              <div className="col-span-1 flex-shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center">
+                  <File size={14} className="text-gray-400" />
                 </div>
               </div>
-
-              <OrderTimeline status={order.status} />
-            </div>
+              <div className="col-span-3">
+                <p className="text-sm font-medium text-gray-900 truncate">{order.fileName}</p>
+                <p className="text-[10px] text-gray-400 md:hidden">{order.orderNumber}</p>
+              </div>
+              <div className="col-span-2 hidden md:block text-sm text-gray-600">{order.tech.toUpperCase()}</div>
+              <div className="col-span-2 hidden md:block text-sm text-gray-600">{order.material.replace(/_/g, " ")}</div>
+              <div className="col-span-1"><StatusChip status={order.status} /></div>
+              <div className="col-span-1 text-right text-sm font-medium text-gray-900">{formatPrice(order.totalPrice * 100)}</div>
+              <div className="col-span-2 text-right text-xs text-gray-400">{formatDate(order.createdAt)}</div>
+            </Link>
           ))}
+        </div>
+      </Card>
+
+      {hasMore && (
+        <div className="text-center mt-4">
+          <Button variant="ghost" onClick={loadMore} loading={loadingMore}>
+            Load more
+          </Button>
         </div>
       )}
     </div>

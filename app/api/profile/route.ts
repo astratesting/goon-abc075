@@ -2,8 +2,31 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hash, compare } from "bcryptjs";
-import { z } from "zod";
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      onboarded: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json(user);
+}
 
 export async function PATCH(request: Request) {
   const session = await getServerSession(authOptions);
@@ -13,16 +36,16 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    const { name } = z.object({ name: z.string().min(1) }).parse(body);
+    const { name } = body;
+    if (typeof name !== "string" || !name.trim()) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { name },
+      data: { name: name.trim() },
     });
     return NextResponse.json({ ok: true });
-  } catch (err) {
-    if (err instanceof z.ZodError) {
-      return NextResponse.json({ error: err.errors[0]?.message }, { status: 400 });
-    }
+  } catch {
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 }
