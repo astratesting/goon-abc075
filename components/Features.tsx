@@ -1,4 +1,4 @@
-const features = [
+const benefits = [
   {
     title: "AI File Repair",
     description:
@@ -11,7 +11,7 @@ const features = [
     gradient: "from-purple-500 to-indigo-500",
   },
   {
-    title: "Same-Day Dispatch",
+    title: "Same-Day Local Fulfillment",
     description:
       "Orders placed before 2pm are printed and shipped the same day. We route to the nearest printer in our network to minimize transit time.",
     icon: (
@@ -22,7 +22,7 @@ const features = [
     gradient: "from-sky-500 to-cyan-500",
   },
   {
-    title: "No Minimum Orders",
+    title: "No Minimums",
     description:
       "Print a single prototype or a batch of fifty — same quality, same turnaround. No setup fees, no MOQs, no contracts required.",
     icon: (
@@ -31,28 +31,6 @@ const features = [
       </svg>
     ),
     gradient: "from-mint-brand to-emerald-500",
-  },
-  {
-    title: "Material Variety",
-    description:
-      "Choose from PLA, PETG, ABS, Nylon, TPU, and engineering resins. Each material is matched to the right printer for optimal results.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
-      </svg>
-    ),
-    gradient: "from-amber-500 to-orange-500",
-  },
-  {
-    title: "Live Order Tracking",
-    description:
-      "Watch your part move through each stage — file repair, slicing, printing, quality check, and shipping — with real-time status updates.",
-    icon: (
-      <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5" />
-      </svg>
-    ),
-    gradient: "from-rose-500 to-pink-500",
   },
   {
     title: "Transparent Pricing",
@@ -72,77 +50,36 @@ export function Features() {
     <section id="features" className="section-container bg-white">
       <div className="text-center max-w-2xl mx-auto mb-16">
         <p className="text-sm font-semibold text-sky-600 uppercase tracking-wider mb-3">
-          How it works
+          What we&apos;re building
         </p>
         <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl text-balance">
-          From CAD file to your door,{" "}
+          Custom 3D printing,{" "}
           <span className="font-serif italic text-sky-700">without the friction</span>
         </h2>
         <p className="mt-4 text-gray-500 leading-relaxed">
-          Traditional prototyping takes weeks. Goon cuts it to hours with
-          automated file repair and a distributed printer network.
+          Goon makes it easy to get high-quality custom parts printed and delivered quickly.
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {features.map((feature, i) => (
+      <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+        {benefits.map((benefit) => (
           <div
-            key={feature.title}
+            key={benefit.title}
             className="group relative rounded-2xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:border-sky-200 hover:shadow-lg hover:shadow-sky-50"
           >
             <div
-              className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${feature.gradient} text-white shadow-lg`}
+              className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${benefit.gradient} text-white shadow-lg`}
             >
-              {feature.icon}
+              {benefit.icon}
             </div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {feature.title}
+              {benefit.title}
             </h3>
             <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-              {feature.description}
+              {benefit.description}
             </p>
           </div>
         ))}
-      </div>
-
-      {/* Process steps */}
-      <div className="mt-20">
-        <h3 className="text-center text-2xl font-bold text-gray-900 mb-12">
-          Three steps. That&apos;s it.
-        </h3>
-        <div className="grid gap-8 md:grid-cols-3">
-          {[
-            {
-              step: "01",
-              title: "Upload your file",
-              desc: "Drop a STEP, STL, or 3MF file. Our AI inspects and repairs it in seconds.",
-            },
-            {
-              step: "02",
-              title: "Choose material & quantity",
-              desc: "Pick from PLA, PETG, Nylon, resin, and more. One part or fifty — no minimum.",
-            },
-            {
-              step: "03",
-              title: "We print & ship",
-              desc: "Your part is routed to the nearest printer, quality-checked, and shipped same day.",
-            },
-          ].map((item) => (
-            <div key={item.step} className="text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-50 to-mint-50 border border-sky-100">
-                <span className="text-lg font-bold gradient-text">
-                  {item.step}
-                </span>
-              </div>
-              <h4 className="text-lg font-semibold text-gray-900">
-                {item.title}
-              </h4>
-              <p className="mt-2 text-sm text-gray-500 max-w-xs mx-auto">
-                {item.desc}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

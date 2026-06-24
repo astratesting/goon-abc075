@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 
 export function CTA() {
   const [email, setEmail] = useState("");
@@ -20,7 +19,6 @@ export function CTA() {
         setSubmitted(true);
       }
     } catch {
-      // show success anyway — fail-open for UX
       setSubmitted(true);
     }
   };
@@ -30,13 +28,12 @@ export function CTA() {
       <div className="section-container text-center">
         <div className="mx-auto max-w-2xl">
           <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl text-balance">
-            Get early access to{" "}
+            Be first to try{" "}
             <span className="font-serif italic text-sky-700">Goon</span>
           </h2>
           <p className="mt-4 text-gray-500 leading-relaxed">
-            Join the waitlist and be first to try AI-powered 3D printing.
-            Upload any file — even broken meshes — and get a printed part
-            shipped the same day.
+            Join the waitlist and we&apos;ll notify you as soon as we&apos;re
+            ready to accept orders. Early members get priority access.
           </p>
 
           {submitted ? (
@@ -74,7 +71,7 @@ export function CTA() {
                 className="w-full rounded-full border border-gray-200 bg-white px-5 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-brand focus:outline-none focus:ring-2 focus:ring-sky-brand/20 transition-all"
               />
               <button type="submit" className="btn-primary whitespace-nowrap">
-                Get Early Access
+                Join the Waitlist
               </button>
             </form>
           )}
@@ -110,7 +107,7 @@ export function CTA() {
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              Free to explore
+              Early access priority
             </span>
             <span className="flex items-center gap-1.5">
               <svg
@@ -126,17 +123,9 @@ export function CTA() {
                   d="M5 13l4 4L19 7"
                 />
               </svg>
-              Cancel anytime
+              No spam
             </span>
           </div>
-
-          <p className="mt-6 text-xs text-gray-400">
-            Or{" "}
-            <Link href="/login?demo=1" className="text-sky-600 hover:underline">
-              try the live demo
-            </Link>{" "}
-            to explore the dashboard with sample data right now.
-          </p>
         </div>
       </div>
     </section>

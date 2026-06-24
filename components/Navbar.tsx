@@ -22,9 +22,6 @@ export function Navbar() {
       <a href="#features" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
         Features
       </a>
-      <a href="#pricing" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
-        Pricing
-      </a>
       <a href="#faq" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
         FAQ
       </a>
@@ -36,22 +33,18 @@ export function Navbar() {
       <Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
         Dashboard
       </Link>
-      <Link href="/dashboard/orders/new" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
-        New Order
-      </Link>
       <button onClick={handleSignOut} className="text-sm text-gray-500 hover:text-gray-900 transition-colors text-left">
         Sign out
       </button>
     </>
   ) : (
-    <>
-      <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900 transition-colors" onClick={() => setMobileOpen(false)}>
-        Sign in
-      </Link>
-      <Link href="/signup" className="btn-primary text-sm px-5 py-2" onClick={() => setMobileOpen(false)}>
-        Get started
-      </Link>
-    </>
+    <a
+      href="#waitlist"
+      className="btn-primary text-sm px-5 py-2"
+      onClick={() => setMobileOpen(false)}
+    >
+      Join the Waitlist
+    </a>
   );
 
   return (
