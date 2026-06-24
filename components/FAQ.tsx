@@ -4,20 +4,36 @@ import { useState } from "react";
 
 const faqs = [
   {
-    q: "When will Goon be available?",
-    a: "We're finalizing our printer network and quality systems now. Sign up for the waitlist and we'll let you know as soon as we're ready to accept orders.",
+    q: "What is Goon?",
+    a: "Goon is a premium spa and salon built exclusively for gay men. We offer haircuts, shaves, facials, massage, waxing, and more in a safe, affirming environment.",
   },
   {
-    q: "What file formats do you accept?",
-    a: "We accept STEP, STL, 3MF, OBJ, and IGES files. Our AI can repair most common mesh issues regardless of which CAD tool you used to create the file.",
+    q: "When do you open?",
+    a: "We're targeting a 2026 opening. Join the waitlist to get early access and priority booking when doors open.",
   },
   {
-    q: "How does the AI file repair work?",
-    a: "When you upload a file, our system automatically detects issues like non-manifold edges, inverted normals, holes in the mesh, and wall-thickness problems. It fixes them before slicing so your part prints correctly — no manual cleanup needed on your end.",
+    q: "Is it really only for gay men?",
+    a: "Yes. Goon is designed as a safe, comfortable space for gay men to groom and relax without judgment. Everyone deserves a space where they feel at home.",
   },
   {
-    q: "What materials will be available?",
-    a: "We're launching with PLA, PETG, ABS, Nylon, TPU (flexible), and standard/detail resins. Material availability may vary by printer location, but we'll always show you what's in stock before you order.",
+    q: "What services do you offer?",
+    a: "We offer haircuts, straight-razor shaves, facials, massage, waxing, brow grooming, and more. Full service details will be available closer to opening.",
+  },
+  {
+    q: "Where are you located?",
+    a: "Our location will be announced soon. We're scouting neighborhoods that are accessible, welcoming, and easy to get to.",
+  },
+  {
+    q: "How much does it cost?",
+    a: "We offer tiered pricing from $45 for basics to $199/month for full membership. See our pricing section for details, and join the waitlist for early-access offers.",
+  },
+  {
+    q: "Is there a membership?",
+    a: "Yes. Our membership plan includes monthly services, product discounts, and access to members-only events. It's the best value for regulars.",
+  },
+  {
+    q: "How do I join the waitlist?",
+    a: "Just enter your email in the waitlist form above. You'll get priority booking access and exclusive opening offers when we're ready to launch.",
   },
 ];
 
@@ -30,7 +46,7 @@ export function FAQ() {
         <p className="text-sm font-semibold text-sky-600 uppercase tracking-wider mb-3">
           FAQ
         </p>
-        <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl lg:text-5xl">
+        <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
           Common questions
         </h2>
       </div>
@@ -40,36 +56,34 @@ export function FAQ() {
           <div key={i}>
             <button
               onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="flex w-full items-center justify-between py-6 text-left group"
+              className="flex w-full items-center justify-between py-5 text-left"
             >
-              <span className="text-base font-medium text-gray-900 pr-4 group-hover:text-sky-700 transition-colors">
+              <span className="text-base font-medium text-gray-900 pr-4">
                 {faq.q}
               </span>
-              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-200 transition-all duration-300 ${openIndex === i ? 'bg-sky-brand border-sky-brand text-white rotate-180' : 'bg-gray-50 text-gray-400 group-hover:border-sky-300 group-hover:text-sky-500'}`}>
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              <svg
+                className={`h-5 w-5 shrink-0 text-gray-400 transition-transform duration-200 ${
+                  openIndex === i ? "rotate-180" : ""
+                }`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </span>
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
             </button>
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                openIndex === i ? "max-h-40 pb-6 opacity-100" : "max-h-0 opacity-0"
-              }`}
-            >
-              <p className="pr-12 text-sm text-gray-500 leading-relaxed">
-                {faq.a}
-              </p>
-            </div>
+            {openIndex === i && (
+              <div className="pb-5 pr-12">
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {faq.a}
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>

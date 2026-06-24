@@ -1,43 +1,42 @@
 const tiers = [
   {
-    name: "Prototype",
-    price: "$15",
-    unit: "per part",
-    description: "Quick single-part prints for testing form and fit.",
+    name: "The Basics",
+    price: "$45",
+    unit: "per visit",
+    description: "Essential grooming to keep you looking sharp.",
     features: [
-      "PLA or PETG material",
-      "Standard resolution (0.2mm)",
-      "AI file repair included",
-      "Same-day dispatch",
-      "Basic tracking",
+      "Haircut or trim",
+      "Hot towel treatment",
+      "Neck & edge cleanup",
+      "Complimentary beverage",
     ],
     highlight: false,
   },
   {
-    name: "Precision",
-    price: "$35",
-    unit: "per part",
-    description: "Higher-detail prints for functional prototypes and presentations.",
+    name: "The Full Send",
+    price: "$95",
+    unit: "per visit",
+    description: "The complete experience. Walk out feeling like a new man.",
     features: [
-      "All Prototype features",
-      "Nylon, ABS, or engineering resin",
-      "High resolution (0.1mm)",
-      "Priority print queue",
-      "Detailed quality report",
+      "All The Basics features",
+      "Straight-razor shave or facial",
+      "Scalp massage",
+      "Premium grooming products",
+      "Priority rebooking",
     ],
     highlight: true,
   },
   {
-    name: "Production",
-    price: "$75",
-    unit: "per part",
-    description: "Batch-ready parts with tighter tolerances and finish options.",
+    name: "The Membership",
+    price: "$199",
+    unit: "per month",
+    description: "Unlimited access for the guys who make grooming a lifestyle.",
     features: [
-      "All Precision features",
-      "Multi-material support",
-      "Custom finish (sanded, painted)",
-      "Batch discounts (10+ parts)",
-      "Dedicated support channel",
+      "All Full Send features",
+      "Monthly massage session",
+      "10% off all products",
+      "Free upgrades on services",
+      "Members-only events",
     ],
     highlight: false,
   },
@@ -57,8 +56,8 @@ export function Pricing() {
           Simple, transparent pricing
         </h2>
         <p className="mt-4 text-gray-500 leading-relaxed">
-          What you see is what you pay. No setup fees, no hidden charges, no
-          minimum order quantities.
+          No surprise fees. No awkward upsells. Just honest pricing for
+          premium grooming.
         </p>
       </div>
 
@@ -115,14 +114,14 @@ export function Pricing() {
             </ul>
 
             <a
-              href="/signup"
+              href="#waitlist"
               className={`block text-center w-full rounded-full py-3 text-sm font-semibold transition-all duration-200 ${
                 tier.highlight
                   ? "bg-sky-brand text-white hover:bg-sky-500 shadow-lg hover:shadow-xl"
                   : "border-2 border-sky-brand text-sky-700 hover:bg-sky-brand hover:text-white"
               }`}
             >
-              Get started
+              Join waitlist
             </a>
           </div>
         ))}
