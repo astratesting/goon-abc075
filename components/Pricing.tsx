@@ -115,7 +115,7 @@ export function Pricing() {
             </ul>
 
             <a
-              href="/register"
+              href="/signup"
               className={`block text-center w-full rounded-full py-3 text-sm font-semibold transition-all duration-200 ${
                 tier.highlight
                   ? "bg-sky-brand text-white hover:bg-sky-500 shadow-lg hover:shadow-xl"

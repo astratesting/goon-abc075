@@ -30,13 +30,13 @@ export function CTA() {
       <div className="section-container text-center">
         <div className="mx-auto max-w-2xl">
           <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl text-balance">
-            Stop losing days to broken CAD files.{" "}
-            <span className="font-serif italic text-sky-700">Let AI fix them.</span>
+            From CAD file to real part,{" "}
+            <span className="font-serif italic text-sky-700">shipped same day.</span>
           </h2>
           <p className="mt-4 text-gray-500 leading-relaxed">
-            Join the waitlist for early access. Upload any file — even
-            error-ridden meshes — and our AI will auto-repair, optimize, and get
-            your part printed and shipped same day.
+            Get early access to Goon. Upload any 3D file — even broken meshes —
+            and our AI will auto-repair, optimize, print, and ship your part
+            the same day. No minimums, no sales calls.
           </p>
 
           {submitted ? (
@@ -74,7 +74,7 @@ export function CTA() {
                 className="w-full rounded-full border border-gray-200 bg-white px-5 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-sky-brand focus:outline-none focus:ring-2 focus:ring-sky-brand/20 transition-all"
               />
               <button type="submit" className="btn-primary whitespace-nowrap">
-                Join waitlist
+                Get Early Access
               </button>
             </form>
           )}
